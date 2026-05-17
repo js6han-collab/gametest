@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.vite/
+
+# Claude Code local settings (machine-specific permissions). Project-level
+# .mcp.json IS tracked so MCP server config syncs across machines.
+.claude/settings.local.json
+
+# Figma MCP screenshot cache — dev-time only, not referenced from the prototype.
+.figma-cache/
