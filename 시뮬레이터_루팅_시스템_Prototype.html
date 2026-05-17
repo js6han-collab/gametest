@@ -1210,8 +1210,10 @@
     background-clip: padding-box, border-box;
     background-origin: padding-box, border-box;
   }
-  .weapon-attach svg { width: 38px; height: 38px; }
-  .weapon-attach.empty svg { opacity: 0.22; }
+  /* 부착물 아이콘 — slot 100x100 의 72% (= 72px). PUBG_ICON img 와 inline SVG 모두 적용. */
+  .weapon-attach > svg,
+  .weapon-attach > img { width: 72px; height: 72px; object-fit: contain; }
+  .weapon-attach.empty > svg { opacity: 0.22; }
   /* Rarity — body + stroke 를 두 background-image 레이어. */
   .weapon-attach.has[data-rarity="blue"] {
     background-image: var(--fig-rarity-blue-body), var(--fig-rarity-blue-stroke);
@@ -1387,8 +1389,9 @@
      비율: 42.55/200 ≈ 21% → 셀 크기에 비례한 사이즈 정의. */
   .cell-cat-icon {
     position: absolute;
-    left: 10px; bottom: 8px;
-    width: 56px; height: 56px;
+    /* Figma: 좌하단 strip(높이 49px) 안에 정렬. 셀 본체 위로 넘어가지 않게 height=strip-margin. */
+    left: 4px; bottom: 4px;
+    width: 42px; height: 42px;
     display: flex; align-items: center; justify-content: center;
     pointer-events: none;
     z-index: 3;
@@ -1402,18 +1405,17 @@
     /* 간략화된 흰색 실루엣 (rarity tint 안 함) — 시인성 우선 */
     color: rgba(255, 255, 255, 0.95);
   }
-  /* weapon-slot (860×480) — 좌측 하단은 attach-row 점유, 좌측 상단은 weapon-name 텍스트.
-     겹침 없는 우측 상단(weapon-render 위쪽 빈 영역)에 카테고리 아이콘 배치. */
+  /* weapon-slot (860×480) — 좌하단은 attach-row 점유. 우상단 빈 영역에 배치. */
   .fi-weapon-slot .cell-cat-icon {
     left: auto; right: 36px; top: 36px; bottom: auto;
     width: 96px; height: 96px;
     opacity: 0.85;
   }
-  /* weapon-attach (100×100) — 좌상단 lbl-mini 와 충돌 회피, 우하단으로 이동 */
+  /* weapon-attach (100×100) — strip 없는 작은 슬롯. 우하단 유지. */
   .weapon-attach .cell-cat-icon {
     left: auto; right: 4px; bottom: 4px;
-    width: 28px; height: 28px;
-    opacity: 0.9;
+    width: 24px; height: 24px;
+    opacity: 0.85;
   }
   /* 아이콘 (가운데) */
   .fi-cell.filled .cell-icon {
@@ -5342,8 +5344,10 @@ function renderFullInventory() {
     const id = el.dataset.id;
     el.addEventListener('mouseenter', () => fiHandleHover(el));
     el.addEventListener('mouseleave', () => fiHideDetail());
-    el.addEventListener('click',     (ev) => fiHandleClick(el, ev));
-    el.addEventListener('contextmenu',(ev) => { ev.preventDefault(); fiHandleRightClick(el); });
+    // 중첩 슬롯(weapon-slot 안의 attach) 대응: 내부 슬롯의 click/contextmenu 가
+    // 부모로 버블되어 무기 컨텍스트로 잡히는 문제 방지. stopPropagation 으로 차단.
+    el.addEventListener('click',     (ev) => { ev.stopPropagation(); fiHandleClick(el, ev); });
+    el.addEventListener('contextmenu',(ev) => { ev.preventDefault(); ev.stopPropagation(); fiHandleRightClick(el); });
     // 더블클릭 → 자동 분배 (quickMove):
     //   ground: 빈 장비 슬롯 → 빈 부착물 슬롯 → 배낭
     //   inv:    빈 장비 슬롯 → 빈 부착물 슬롯 (= 자동 장착)
