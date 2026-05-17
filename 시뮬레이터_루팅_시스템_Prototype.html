@@ -2693,10 +2693,13 @@
         </div>
       </div>
 
-      <!-- 우측 빈 영역 드롭존 — 장비 컬럼 우측 (x:3712..3840) + 무기 카드 아래 빈 공간.
-           data-scope="floor" 라 performTransfer 가 자동으로 바닥에 버리기 (또는 ground source 시 pickup). -->
+      <!-- 우측 빈 영역 드롭존 — 장비 컬럼 우측 (x:3712..3840). -->
       <div class="fig-node fi-side-drop" data-scope="floor" data-id="floor-right"
            style="left:3712px;top:200px;width:128px;height:1782px"></div>
+
+      <!-- 배낭(center) ↔ 장비(right) 사이 78px 갭 — 배낭 우측 빈 영역. -->
+      <div class="fig-node fi-side-drop" data-scope="floor" data-id="floor-bp-right"
+           style="left:2774px;top:265px;width:78px;height:1652px"></div>
 
     </div>
 
@@ -3162,8 +3165,14 @@ const PUBG_ICON = {
   shotgun:  'figma-assets/pubg-icons/shotgun.png',
   pistol:   'figma-assets/pubg-icons/pistol.png',
   helmet:   'figma-assets/pubg-icons/helmet.png',
+  helmet_l1:'figma-assets/pubg-icons/helmet_l1.png',
+  helmet_l2:'figma-assets/pubg-icons/helmet_l2.png',
+  helmet_l3:'figma-assets/pubg-icons/helmet_l3.png',
   vest:     'figma-assets/pubg-icons/vest.png',
   pack:     'figma-assets/pubg-icons/pack.png',
+  pack_l1:  'figma-assets/pubg-icons/pack_l1.png',
+  pack_l2:  'figma-assets/pubg-icons/pack_l2.png',
+  pack_l3:  'figma-assets/pubg-icons/pack_l3.png',
   // Heal
   bandage:  'figma-assets/pubg-icons/bandage.png',
   firstaid: 'figma-assets/pubg-icons/firstaid.png',
@@ -3241,15 +3250,15 @@ const ITEM_DEFS = {
   pst_p18c:   {name:"P18C",       cat:"weapon", iconType:"pistol", ammoType:"9mm",   slotSize:2, stack:1, weight:0.8, desc:"권총. 보조 무기.", equipSlot:"sidearm", power:12, attachSlots:["sight"]},
 
   // Armor
-  helm_l1: {name:"1단계 헬멧", cat:"helmet", iconType:"helmet", slotSize:3, stack:1, weight:1.0, desc:"기본 보호. 권총탄 일부 차단.", equipSlot:"helmet", level:1},
-  helm_l2: {name:"2단계 헬멧", cat:"helmet", iconType:"helmet", slotSize:3, stack:1, weight:1.5, desc:"중급 보호. 5.56 일부 차단.",   equipSlot:"helmet", level:2},
-  helm_l3: {name:"3단계 헬멧", cat:"helmet", iconType:"helmet", slotSize:3, stack:1, weight:2.0, desc:"최상급 보호. 7.62 일부 차단.", equipSlot:"helmet", level:3},
-  vest_l1: {name:"1단계 조끼", cat:"armor",  iconType:"vest",   slotSize:4, stack:1, weight:2.0, desc:"기본 방탄.", equipSlot:"vest", level:1},
-  vest_l2: {name:"2단계 조끼", cat:"armor",  iconType:"vest",   slotSize:5, stack:1, weight:3.0, desc:"중급 방탄.", equipSlot:"vest", level:2},
-  vest_l3: {name:"3단계 조끼", cat:"armor",  iconType:"vest",   slotSize:6, stack:1, weight:4.0, desc:"최상급 방탄.", equipSlot:"vest", level:3},
-  pack_l1: {name:"1단계 백팩", cat:"pack",   iconType:"pack",   slotSize:0, stack:1, weight:1.0, desc:"+15 슬롯 용량.", equipSlot:"pack", level:1, capacity:15},
-  pack_l2: {name:"2단계 백팩", cat:"pack",   iconType:"pack",   slotSize:0, stack:1, weight:1.5, desc:"+30 슬롯 용량.", equipSlot:"pack", level:2, capacity:30},
-  pack_l3: {name:"3단계 백팩", cat:"pack",   iconType:"pack",   slotSize:0, stack:1, weight:2.0, desc:"+50 슬롯 용량.", equipSlot:"pack", level:3, capacity:50},
+  helm_l1: {name:"1단계 헬멧", cat:"helmet", iconType:"helmet_l1", slotSize:3, stack:1, weight:1.0, desc:"기본 보호. 권총탄 일부 차단.", equipSlot:"helmet", level:1},
+  helm_l2: {name:"2단계 헬멧", cat:"helmet", iconType:"helmet_l2", slotSize:3, stack:1, weight:1.5, desc:"중급 보호. 5.56 일부 차단.",   equipSlot:"helmet", level:2},
+  helm_l3: {name:"3단계 헬멧", cat:"helmet", iconType:"helmet_l3", slotSize:3, stack:1, weight:2.0, desc:"최상급 보호. 7.62 일부 차단.", equipSlot:"helmet", level:3},
+  vest_l1: {name:"1단계 조끼", cat:"armor",  iconType:"vest",      slotSize:4, stack:1, weight:2.0, desc:"기본 방탄.", equipSlot:"vest", level:1},
+  vest_l2: {name:"2단계 조끼", cat:"armor",  iconType:"vest",      slotSize:5, stack:1, weight:3.0, desc:"중급 방탄.", equipSlot:"vest", level:2},
+  vest_l3: {name:"3단계 조끼", cat:"armor",  iconType:"vest",      slotSize:6, stack:1, weight:4.0, desc:"최상급 방탄.", equipSlot:"vest", level:3},
+  pack_l1: {name:"1단계 백팩", cat:"pack",   iconType:"pack_l1",   slotSize:0, stack:1, weight:1.0, desc:"+15 슬롯 용량.", equipSlot:"pack", level:1, capacity:15},
+  pack_l2: {name:"2단계 백팩", cat:"pack",   iconType:"pack_l2",   slotSize:0, stack:1, weight:1.5, desc:"+30 슬롯 용량.", equipSlot:"pack", level:2, capacity:30},
+  pack_l3: {name:"3단계 백팩", cat:"pack",   iconType:"pack_l3",   slotSize:0, stack:1, weight:2.0, desc:"+50 슬롯 용량.", equipSlot:"pack", level:3, capacity:50},
 
   // Healing
   band:    {name:"붕대",        cat:"heal", iconType:"bandage",  slotSize:1, stack:6,  weight:0.05, desc:"HP 10 회복. 75 상한."},
@@ -5486,6 +5495,11 @@ function fiIsValidDrop(srcScope, srcId, tgtScope, tgtId) {
     return true;                              // inv/equip → 바닥에 버리기
   }
   if (tgtScope === 'equip') {
+    // 부착물을 무기 슬롯에 직접 드롭하면 매칭되는 sub-slot 으로 라우팅 (점유돼있으면 swap).
+    if (item.def.attachType && (tgtId === 'primary' || tgtId === 'secondary')) {
+      const w = inv.equip[tgtId];
+      return !!(w && w.def.attachSlots && w.def.attachSlots.includes(item.def.attachType));
+    }
     return canEquipInto(item, tgtId);
   }
   if (tgtScope === 'attach') {
@@ -5625,6 +5639,24 @@ function performTransfer(srcScope, srcId, tgtScope, tgtId) {
 
   // ----- Destination: equip slot -----
   if (tgtScope === 'equip') {
+    // 부착물을 무기 본체에 드롭 → 매칭 sub-slot 으로 라우팅, 점유돼있으면 swap.
+    if (item.def.attachType && (tgtId === 'primary' || tgtId === 'secondary')) {
+      const weapon = inv.equip[tgtId];
+      if (!weapon || !weapon.def.attachSlots || !weapon.def.attachSlots.includes(item.def.attachType)) return;
+      if (!weapon.attachments) weapon.attachments = {};
+      const atType = item.def.attachType;
+      const cur = weapon.attachments[atType];
+      removeFromSource(srcScope, srcId);
+      weapon.attachments[atType] = item;
+      if (cur) {
+        // 점유된 부착물은 src 로 swap. src 가 attach 면 같은 자리에 들어감 (1:1 교환).
+        if (srcScope === 'inv')   inv.backpack.push(cur);
+        else if (srcScope === 'cn') activeContainer.contents.push(cur);
+        else inv.backpack.push(cur);
+      }
+      fiAfterChange();
+      return;
+    }
     if (!canEquipInto(item, tgtId)) return;
     const cur = inv.equip[tgtId];
     removeFromSource(srcScope, srcId);
@@ -5868,6 +5900,24 @@ function onFIDragStart(ev) {
   _fiDragData = payload;
   ev.dataTransfer.effectAllowed = 'move';
   try { ev.dataTransfer.setData('text/plain', payload.map(p => `${p.scope}:${p.id}`).join(',')); } catch (e) {}
+  // 커스텀 drag image — 원본 셀(200×200/860×480) 그대로 미리보기가 되면 너무 커서
+  // 60×60 의 작은 아이콘 미리보기를 생성한다. fig-canvas 의 scale 변환이 drag-image
+  // 에 반영되지 않아 원본 사이즈가 그대로 노출되는 게 본 문제. 작은 div 를 별도 생성해 setDragImage.
+  try {
+    const ghost = document.createElement('div');
+    ghost.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:60px;height:60px;' +
+      'background:rgba(20,28,42,0.92);border:1.5px solid rgba(120,200,230,0.65);border-radius:8px;' +
+      'display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;' +
+      'box-shadow:0 4px 12px rgba(0,0,0,0.6);z-index:9999;pointer-events:none;';
+    if (item && item.def) {
+      ghost.innerHTML = iconHtml(item.def.iconType, 48);
+      const img = ghost.querySelector('img,svg');
+      if (img) { img.style.width = '48px'; img.style.height = '48px'; img.style.objectFit = 'contain'; }
+    }
+    document.body.appendChild(ghost);
+    ev.dataTransfer.setDragImage(ghost, 30, 30);
+    setTimeout(() => ghost.remove(), 0);
+  } catch (e) { /* setDragImage 미지원 브라우저 — 기본 동작 폴백 */ }
   // Mark all dragged sources visually
   for (const p of payload) {
     const src = document.querySelector(`#fullinv [data-scope="${p.scope}"][data-id="${CSS.escape(p.id)}"]`);
