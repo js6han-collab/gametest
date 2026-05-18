@@ -260,14 +260,11 @@
   }
   #reticle {
     position: absolute; left: 50%; top: 50%;
-    transform: translate(-50%,-50%);
+    /* --spread 는 JS 에서 매 프레임 player state 따라 갱신 (idle 1.0 / walking ~1.25 / jumping ~1.6). */
+    --spread: 1.0;
+    transform: translate(-50%,-50%) scale(var(--spread));
     filter: drop-shadow(0 0 2px rgba(0,0,0,0.9));
-    transition: transform 0.18s ease;
-  }
-  /* Crosshair bloom while firing */
-  #reticle.firing {
-    transform: translate(-50%,-50%) scale(1.55);
-    transition: transform 0.04s ease-out;
+    transition: transform 0.08s ease-out;
   }
 
   /* Top-left callsign */
@@ -3652,10 +3649,49 @@ function makeItem(defId, opts) {
 // ============= THREE.JS SCENE SETUP ==================
 // =====================================================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x5ba8d4);
-scene.fog = new THREE.Fog(0x8ec8e8, 60, 160);
+// sky sphere 가 배경 전체를 감싸므로 scene.background 는 horizon 색 fallback.
+scene.background = new THREE.Color(0xa8d0e8);
+scene.fog = new THREE.Fog(0xb8d4e8, 60, 160);
+
+// Hemisphere sky — world Y 기준 zenith→horizon 그라데이션. 메시 1개(sphere) + 간단한 shader.
+(function addSkyDome() {
+  const skyGeo = new THREE.SphereGeometry(320, 16, 8);
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    uniforms: {
+      topColor:    { value: new THREE.Color(0x3d7fb8) },   // 천정 — 진한 하늘
+      bottomColor: { value: new THREE.Color(0xc8dfeb) },   // 지평 — 옅은 푸른 회색
+      offset:      { value: 12 },
+      exponent:    { value: 0.55 },
+    },
+    vertexShader: `
+      varying vec3 vWorldPosition;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = wp.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 bottomColor;
+      uniform float offset;
+      uniform float exponent;
+      varying vec3 vWorldPosition;
+      void main() {
+        float h = normalize(vWorldPosition + offset).y;
+        float t = max(pow(max(h, 0.0), exponent), 0.0);
+        gl_FragColor = vec4(mix(bottomColor, topColor, t), 1.0);
+      }
+    `,
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+})();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 400);
+const CAMERA_BASE_FOV = 60;   // FOV punch 원복 기준값
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('cv'), antialias: false });
 renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -3688,8 +3724,37 @@ sun.shadow.camera.left = -60; sun.shadow.camera.right = 60;
 sun.shadow.camera.top = 60; sun.shadow.camera.bottom = -60;
 scene.add(sun);
 
-// Ground
-const groundMat = new THREE.MeshStandardMaterial({ color: 0x4b4530, roughness: 1 });
+// Ground — 절차적 canvas 텍스처. 512x512 noise + speckle, 한 번만 생성. repeat 으로 반복 적용.
+const groundTex = (function buildGroundTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const ctx = c.getContext('2d');
+  // 베이스 그라데이션 — 사용자 요청으로 한 단계 밝게.
+  const g = ctx.createLinearGradient(0, 0, 512, 512);
+  g.addColorStop(0, '#85785a'); g.addColorStop(0.5, '#776a4c'); g.addColorStop(1, '#7d7251');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 512);
+  // 작은 speckle — 더 밝은 톤으로 디테일 강조
+  for (let i = 0; i < 6000; i++) {
+    const x = Math.random()*512, y = Math.random()*512;
+    const v = 90 + Math.random()*55;
+    ctx.fillStyle = `rgba(${v},${v*0.93},${v*0.72},0.45)`;
+    ctx.fillRect(x, y, 1+Math.random()*1.5, 1+Math.random()*1.5);
+  }
+  // 큰 blotch — 풀 패치, 밝게
+  for (let i = 0; i < 90; i++) {
+    const x = Math.random()*512, y = Math.random()*512;
+    const r = 8 + Math.random()*24;
+    ctx.fillStyle = `rgba(${80+Math.random()*30},${100+Math.random()*35},${55+Math.random()*25},0.30)`;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(24, 24);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+  return t;
+})();
+// material color 도 밝게 — tex 와 함께 multiply 되므로 final tone 이 환해짐.
+const groundMat = new THREE.MeshStandardMaterial({ color: 0xb8aa82, map: groundTex, roughness: 1 });
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), groundMat);
 ground.rotation.x = -Math.PI/2;
 ground.receiveShadow = true;
@@ -3993,7 +4058,7 @@ const state = {
   mode: "BR",                  // "BR" | "EXT"
   thirdPerson: true,
   qlMaxN: 3,
-  qlRadius: 2.8,
+  qlRadius: 1.5,
   fireGraceUntil: 0,            // performance.now() ms — while < this, HUD is suppressed
   fireGraceMs: 1500,            // 1.5s after primary fire
   padExpandQL: false,           // LB held — analogous to keyboard Shift for QL expansion
@@ -4460,12 +4525,14 @@ function frontmostInteractable() {
   const fx = -Math.sin(player.yaw);
   const fz = -Math.cos(player.yaw);
   let best = null, bestScore = Infinity;
-  // Containers — nearestInteractable 의 3.2m 범위 안에서만.
+  // Containers — 바닥 아이템과 동일한 거리 조건(qlRadius). 그 안에서 보고 있을 때만 prompt.
+  // 그 밖에선 dot 도 안 뜨고(renderGroundDots 에서 거리 필터), 따라서 buton guide 도 안 뜸.
+  const _cnMax = state.qlRadius;
   for (const c of containers) {
     const dx = c.mesh.position.x - player.pos.x;
     const dz = c.mesh.position.z - player.pos.z;
     const d = Math.hypot(dx, dz);
-    if (d > 3.2) continue;
+    if (d > _cnMax) continue;
     if (d < 0.001) {
       if (0.5 < bestScore) { best = { kind: 'container', target: c }; bestScore = 0.5; }
       continue;
@@ -7000,27 +7067,39 @@ function _gdKeyHtml(keyChar, progress) {
   // viewBox 44x44, r=20 → ring 이 키 바깥(32x32 키 + 6px 여유) 둘레에 그려짐. dasharray=125.66 (=2π·20).
   return `<span class="key" style="--p:${p}"><svg class="key-ring" viewBox="0 0 44 44"><circle class="ring-bg" cx="22" cy="22" r="20"/><circle class="ring-fg" cx="22" cy="22" r="20" transform="rotate(-90 22 22)"/></svg><span class="hold-arrow"></span><span class="key-letter">${keyChar}</span></span>`;
 }
+// 흰 dot 표시 범위 — 인터랙션 가능 거리(qlRadius=1.8m)보다 적당히 넓게.
+// 실제 픽업/탐색 가능 여부는 qlRadius 기준이라 무관.
+const DOT_VIS_RADIUS = 3.0;
 function renderGroundDots() {
   if (state.fullInvOpen) { elGroundDots.innerHTML = ''; return; }
-  const list = nearbyGroundItems();
-  // 양쪽 모두 비면 표시 X.
-  if (list.length === 0 && containers.length === 0) { elGroundDots.innerHTML = ''; return; }
+  if (groundItems.length === 0 && containers.length === 0) { elGroundDots.innerHTML = ''; return; }
 
-  // 포커싱 = 보고 있는 것 (컨테이너 vs 바닥 동등 평가). 사용자: "원하는 걸 인터랙션 할 수 있어야".
+  // 포커싱 = 보고 있는 것 (컨테이너 vs 바닥 동등 평가). frontmostInteractable 내부에서 qlRadius 기준 평가.
   const front = frontmostInteractable();
   const bestContainer = (front && front.kind === 'container') ? front.target : null;
   const bestGround    = (front && front.kind === 'ground')    ? front.target : null;
   const W = window.innerWidth, H = window.innerHeight;
   const keyChar = state.padConnected ? 'X' : 'E';
+  const dotR2 = DOT_VIS_RADIUS * DOT_VIS_RADIUS;
   let html = '';
 
-  // 1) Ground items
-  for (const e of list) {
-    _tmpVec3.set(e.mesh.position.x, e.mesh.position.y + 0.35, e.mesh.position.z);
+  // 1) Ground items — DOT_VIS_RADIUS 안의 모든 아이템에 dot. 그 중 frontmost 만 prompt(버튼 가이드).
+  //    baseY 사용해서 인터랙션 UI 가 bob 따라가지 않게.
+  for (const e of groundItems) {
+    const _ddx = e.mesh.position.x - player.pos.x;
+    const _ddz = e.mesh.position.z - player.pos.z;
+    const isFocusedGd = (e === bestGround);
+    // 포커싱은 어차피 qlRadius 안에서만 잡힘. 그 외는 dot 표시 거리 안인지만 체크.
+    if (!isFocusedGd && _ddx*_ddx + _ddz*_ddz > dotR2) continue;
+    const staticY = (typeof e.baseY === 'number' ? e.baseY : e.mesh.position.y) + 0.35;
+    _tmpVec3.set(e.mesh.position.x, staticY, e.mesh.position.z);
     _tmpVec3.project(camera);
     if (_tmpVec3.z > 1) continue;
     const sx = (_tmpVec3.x * 0.5 + 0.5) * W;
     const rawSy = (-_tmpVec3.y * 0.5 + 0.5) * H;
+    // 포커싱 안 된 dot 은 화면 밖이면 아예 표시 안 함 (사용자 요청).
+    const isFocused = (e === bestGround);
+    if (!isFocused && (sx < -20 || sx > W + 20 || rawSy < -20 || rawSy > H + 20)) continue;
     // 시야를 높이면 바닥 아이템의 화면 좌표가 아래로 밀려서 prompt 가 화면 밖으로 나감.
     // 포커싱 prompt 는 하단 안전 영역(~120px) 안에 클램프, 비포커싱 dot 은 작은 margin 만.
     const sy = rawSy;
@@ -7047,15 +7126,24 @@ function renderGroundDots() {
   }
 
   // 2) Containers — 바닥 아이템과 동일 시각 언어(흰 원 dot / 포커싱 시 gd-prompt "탐색").
+  // 컨테이너 dot 표시 거리 = DOT_VIS_RADIUS (ground 와 동일, qlRadius 보다 넓음).
+  // 포커싱(prompt) 거리는 frontmostInteractable 내부에서 qlRadius 로 별도 평가.
   for (const c of containers) {
-    _tmpVec3.set(c.mesh.position.x, c.mesh.position.y + 0.55, c.mesh.position.z);
+    const _dx = c.mesh.position.x - player.pos.x;
+    const _dz = c.mesh.position.z - player.pos.z;
+    const _d2 = _dx*_dx + _dz*_dz;
+    const isFocusedCn = (c === bestContainer);
+    if (!isFocusedCn && _d2 > dotR2) continue;
+    _tmpVec3.set(c.mesh.position.x, c.mesh.position.y + 0.25, c.mesh.position.z);
     _tmpVec3.project(camera);
     if (_tmpVec3.z > 1) continue;
     const sx = (_tmpVec3.x * 0.5 + 0.5) * W;
     const rawSy = (-_tmpVec3.y * 0.5 + 0.5) * H;
+    // 포커싱 안 된 컨테이너 dot 도 화면 밖이면 표시 안 함.
+    if (!isFocusedCn && (sx < -20 || sx > W + 20 || rawSy < -20 || rawSy > H + 20)) continue;
     const promptY = Math.min(rawSy, H - 120);
     const dotY = Math.min(Math.max(rawSy, 10), H - 14);
-    if (c === bestContainer) {
+    if (isFocusedCn) {
       // 인터랙션이 진행 중이고 대상이 이 컨테이너면 진행률을 키 ring 에 표시.
       const prog = (interaction && interaction.target === c) ? Math.min(1, interaction.t / interaction.total) : 0;
       html += `<div class="gd-prompt" data-kind="container" style="left:${sx + 14}px; top:${promptY}px">
@@ -7110,10 +7198,7 @@ window.addEventListener('keydown', e => {
   }
   keys.add(k);
   if (k === 'c') { state.thirdPerson = !state.thirdPerson; }
-  if (k === 'f' && !state.fullInvOpen) {
-    // Legacy alias — F도 픽업 동작 유지. 화면 힌트는 E만 노출.
-    if (!_fHoldStart) _fHoldStart = performance.now();
-  }
+  // F 키 픽업 alias 제거(사용자 요청). 픽업은 E(KB) / X(pad) 만.
   // E 키 분기:
   //   인벤 닫힌 상태: 상호작용 우선(컨테이너 있으면 검색), 없으면 픽업 hold 타이머 시작
   //   인벤 열린 상태: hold → pickupAll (주변 전체 가져가기). tap 은 별도 의미 없음.
@@ -7166,14 +7251,7 @@ window.addEventListener('keyup', e => {
     LW.heldKb = false;
     closeLootWheel(true);
   }
-  if (k === 'f' && _fHoldStart) {
-    const dur = (performance.now() - _fHoldStart) / 1000;
-    _fHoldStart = 0;
-    // If hold-pickup already fired during the hold, skip — keyup must not double-fire.
-    if (_fHoldFired) { _fHoldFired = false; return; }
-    if (state.fullInvOpen) return;
-    pickupSingle();
-  }
+  // F 키 keyup → 픽업 제거(사용자 요청). _fHoldStart/_fHoldFired 변수는 안전을 위해 유지(다른 곳에서 reset 되긴 함).
   if (k === 'e') {
     // 인벤 열린 상태: hold timer 가 살아있으면 (= hold 발동 전) tap 으로 간주.
     //   포커스가 ground 아이템이면 단발 픽업, 아니면 no-op.
@@ -7342,17 +7420,35 @@ function fireOneShot() {
   if (player.pitch > 0.7) player.pitch = 0.7;
   // Camera shake
   shake(0.06, 0.08);
+  // FOV punch — 짧고 강한 임팩트 강조. update loop 에서 자동 감쇠 (~100ms 안에 복원).
+  _fovBoost = Math.min(_fovBoost + 2.4, 4.0);
   // Audio
   playGunshot();
-  // Crosshair bloom
-  const ret = document.getElementById('reticle');
-  ret.classList.add('firing');
-  clearTimeout(_reticleTimer);
-  _reticleTimer = setTimeout(() => ret.classList.remove('firing'), 90);
+  // Crosshair bloom — spread boost (매 프레임 업데이트에서 자동 감쇠).
+  _retSpreadBoost = Math.min(_retSpreadBoost + 0.55, 0.95);
   // HUD suppression grace
   state.fireGraceUntil = performance.now() + state.fireGraceMs;
 }
 let _reticleTimer = 0;
+let _retSpread = 1.0;        // 현재 reticle 스케일 (smoothly lerped)
+let _retSpreadBoost = 0;     // 사격 시 임시 가산. 매 프레임 자동 감쇠.
+const _retEl = document.getElementById('reticle');
+function _updateReticleSpread(dt) {
+  // 기본 spread: idle 1.0 / walking 1.25 / sprint 1.4 / airborne 1.7
+  const hvx = player.vel.x, hvz = player.vel.z;
+  const hsp = Math.sqrt(hvx*hvx + hvz*hvz);
+  let target = 1.0;
+  if (!player.onGround) target = 1.7;
+  else if (hsp > 6.5) target = 1.4;
+  else if (hsp > 0.5) target = 1.25;
+  // 사격 boost (추가) — 매 프레임 0.88 비율로 감쇠.
+  target += _retSpreadBoost;
+  _retSpreadBoost *= 0.88;
+  if (_retSpreadBoost < 0.005) _retSpreadBoost = 0;
+  // smoothly lerp
+  _retSpread += (target - _retSpread) * Math.min(1, dt * 12);
+  _retEl.style.setProperty('--spread', _retSpread.toFixed(3));
+}
 
 // LMB = primary fire. mousedown fires immediately, frame loop handles full-auto.
 let _lmbHeld = false;
@@ -7501,6 +7597,34 @@ function updatePlayer(dt) {
       )
     : new THREE.Vector3(player.pos.x, player.pos.y + (player.crouched ? player.eyeHeightCrouched : player.eyeHeight), player.pos.z);
   camera.position.lerp(targetPos, 0.35);
+  // 1인칭 카메라 bob / breathing — 3인칭에선 캐릭터 메시 자체가 bob 되므로 카메라엔 적용 X.
+  if (!state.thirdPerson) {
+    const hvx2 = player.vel.x, hvz2 = player.vel.z;
+    const hsp = Math.sqrt(hvx2*hvx2 + hvz2*hvz2);
+    const moving2 = hsp > 0.2 && player.onGround;
+    _camBobPhase += dt * (moving2 ? (4.5 + hsp * 0.6) : 0);
+    const bobAmt = moving2 ? Math.min(1, hsp / 8) : 0;
+    const bobY = Math.sin(_camBobPhase * 2) * 0.028 * bobAmt;
+    const bobX = Math.cos(_camBobPhase) * 0.018 * bobAmt;
+    // breathing — idle 시 천천히 흔들리는 미세 호흡감
+    const breath = moving2 ? 0 : 1;
+    const t = performance.now() / 1000;
+    const brY = Math.sin(t * 1.6) * 0.006 * breath;
+    const brX = Math.sin(t * 0.9) * 0.004 * breath;
+    camera.position.y += bobY + brY;
+    camera.position.x += (bobX + brX) * rx;
+    camera.position.z += (bobX + brX) * rz;
+  }
+  // FOV punch — 사격/체감 강조용. fovBoost 가 매 프레임 0 으로 감쇠.
+  if (_fovBoost > 0.001) {
+    camera.fov = CAMERA_BASE_FOV + _fovBoost;
+    camera.updateProjectionMatrix();
+    _fovBoost *= 0.85;   // ~100ms 안에 사실상 0
+  } else if (camera.fov !== CAMERA_BASE_FOV) {
+    camera.fov = CAMERA_BASE_FOV;
+    camera.updateProjectionMatrix();
+    _fovBoost = 0;
+  }
   const lookAt = new THREE.Vector3(
     camera.position.x + fx * 10,
     camera.position.y + Math.sin(player.pitch) * 10,
@@ -7509,6 +7633,8 @@ function updatePlayer(dt) {
   camera.lookAt(lookAt);
   applyShake(dt);
 }
+let _camBobPhase = 0;
+let _fovBoost = 0;
 
 // =====================================================
 // ============= GAMEPAD INPUT =========================
@@ -8093,6 +8219,7 @@ function frame(now) {
     if (needRender) renderFullInventory();
   }
 
+  _updateReticleSpread(dt);
   renderer.render(scene, camera);
   renderGroundDots();
   requestAnimationFrame(frame);
