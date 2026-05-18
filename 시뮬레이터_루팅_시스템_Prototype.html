@@ -96,7 +96,7 @@
 
   /* ===== Slot dimensions (Figma 원본 px) =================== */
   --fig-slot-size:             200px;     /* 배낭/주변/장비/소모품 셀 */
-  --fig-slot-attach:           100px;     /* 무기 attach */
+  --fig-slot-attach:           140px;     /* 무기 attach */
   --fig-slot-tier:             96px;      /* icon_tier_Epic */
   --fig-slot-card-w:           860px;     /* 무기 카드 */
   --fig-slot-card-h:           480px;
@@ -106,19 +106,30 @@
      Body gradient 는 좌상단 어둠 → 우하단 rarity 채도로 확장. 원래 Figma 값은 너무 미묘해서
      희귀도 구분이 안 됐다 (예: blue body #13273E vs gold body #3D2D14 — 어두운 갈색/네이비).
      보다 명확하게 보이도록 두 번째 stop 의 채도/밝기를 올림. */
-  --fig-rarity-blue-body:      linear-gradient(230deg, #0A1428 3%, #1F4A7F 81%);
+  /* rarity body — 상단 영역은 완전 투명, 좌하단(230deg 방향)으로 갈수록 rarity 색이 살짝 비침.
+     슬롯 전체가 rarity 로 뿌옇게 덮이는 게 아니라, 빈 슬롯의 어두운 베이스가 그대로 보이고
+     bottom-left 코너 쪽에만 은은한 색 (accent 삼각형 위치와 일치). */
+  /* rarity body — 불투명 어두운 베이스 위에 좌하단으로 갈수록 rarity 가 살짝 섞인 톤.
+     이전엔 body 알파를 낮춰도 그 아래 stroke 풀 알파 그라데이션이 padding-box 까지 비쳐서
+     슬롯 내부가 stroke 색(풀 채도)으로 보이던 게 "쨍한" 원인. 이제 body 가 stroke 를 inner 에서 완전 차단. */
+  /* rarity body — 불투명 어두운 베이스(top-right) → 좌하단으로 갈수록 rarity 가 또렷이 섞인 미디엄톤.
+     body 알파를 안 쓰는 대신 색상 자체를 어둡게 사전-블렌딩 → stroke 누출 없이 등급별 정체성이 살아남. */
+  /* rarity body — 불투명 사전-블렌딩 색. stroke 누출 0 (body 가 완전히 가림) → 사용자가 보는 색을
+     정확히 제어 가능. top-right 는 등급별 매우 어두운 톤, bottom-left 는 채도가 살짝 살아있는
+     dim rarity 톤. 이전 0.375 알파 상태의 시각 강도 대비 약 절반 수준. */
+  --fig-rarity-blue-body:      linear-gradient(230deg, #0F1320 3%, #14324A 81%);
   --fig-rarity-blue-stroke:    linear-gradient(225deg, #565667 0%, #0FA1E6 100%);
   --fig-rarity-blue-accent:    #00A8F2;
-  --fig-rarity-pink-body:      linear-gradient(230deg, #1A0A1A 3%, #6B1F6A 81%);
+  --fig-rarity-pink-body:      linear-gradient(230deg, #170E17 3%, #301937 81%);
   --fig-rarity-pink-stroke:    linear-gradient(225deg, #565667 0%, #CC3099 100%);
   --fig-rarity-pink-accent:    #CC3099;
-  --fig-rarity-grey-body:      linear-gradient(230deg, #0F1119 3%, #2F3344 81%);
+  --fig-rarity-grey-body:      linear-gradient(230deg, #131520 3%, #1E2128 81%);
   --fig-rarity-grey-stroke:    linear-gradient(225deg, #565667 0%, #8B8B8B 100%);
   --fig-rarity-grey-accent:    #8B8B8B;
-  --fig-rarity-green-body:     linear-gradient(230deg, #0A1A14 3%, #1F6638 81%);
+  --fig-rarity-green-body:     linear-gradient(230deg, #0F1812 3%, #163023 81%);
   --fig-rarity-green-stroke:   linear-gradient(225deg, #565667 0%, #2BBC58 100%);
   --fig-rarity-green-accent:   #26BF57;
-  --fig-rarity-gold-body:      linear-gradient(230deg, #1F1408 3%, #7A5318 81%);
+  --fig-rarity-gold-body:      linear-gradient(230deg, #181208 3%, #322819 81%);
   --fig-rarity-gold-stroke:    linear-gradient(225deg, #565667 0%, #E3B94F 100%);
   --fig-rarity-gold-accent:    #E3B94F;
 
@@ -399,6 +410,28 @@
     letter-spacing: 0.02em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* 인터랙션 UI 우측 상향 화살표 — 더 좋은 무기/방어구 즉시 식별. */
+  .ql-item .upgrade-mark {
+    flex: 0 0 auto;
+    margin-left: 4px;
+    min-width: 16px;
+    color: #6ad4e8;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 1;
+    text-shadow: 0 0 8px rgba(106,212,232,0.75);
+  }
+  /* 포커싱된 호환 탄약 하단 — 가로 무기 실루엣만 표시(텍스트 없음). gd-prompt 와 동일 시각 언어. */
+  .ql-item .compat-hint {
+    margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ql-item .compat-hint img,
+  .ql-item .compat-hint svg {
+    width: 64px; height: auto; object-fit: contain;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+    opacity: 0.95;
+  }
   .ql-item .name .up {
     display: inline-block; margin-left: 5px;
     color: #6ad4e8; font-weight: 700; font-size: 11px;
@@ -633,7 +666,7 @@
     position: fixed; inset: 0;
     display: none;
     pointer-events: auto;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(30, 29, 41, 0.7);   /* #1E1D29 @ alpha 0.7 — 월드가 살짝 비침 */
     z-index: 50;
   }
   #fullinv.active { display: block; }
@@ -760,13 +793,20 @@
     display: flex; flex-direction: column;
     gap: 24px;   /* title → underline 또는 title → body 간 gap */
   }
-  /* 좌측 주변 컬럼: 컨테이너 subsection 은 자연 크기, 바닥 subsection 이 남은 높이를 채우고 그리드가 스크롤. */
+  /* 좌측 주변 컬럼: 컨테이너 + 바닥 두 sub-section 을 한 wrapper(.fi-col-scroll) 안에 묶어
+     함께 스크롤. 타이틀/언더라인은 상단에 고정. */
   .fi-col-left { overflow: hidden; min-height: 0; }
-  #fiGroundSubsection { flex: 1 1 0; min-height: 0; }
-  #fiGroundGrid { overflow-y: auto; min-height: 0; }
-  #fiGroundGrid::-webkit-scrollbar { width: 6px; }
-  #fiGroundGrid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
-  #fiGroundGrid::-webkit-scrollbar-track { background: transparent; }
+  .fi-col-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 64px;   /* 컨테이너 / 바닥이 서로 다른 영역으로 보이도록 충분히 띄움 */
+    padding-inline: 9px;   /* 셀 focus ring (inset:-8) 좌/우 크롭 방지용 여유 */
+  }
+  .fi-col-scroll::-webkit-scrollbar { width: 6px; }
+  .fi-col-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
+  .fi-col-scroll::-webkit-scrollbar-track { background: transparent; }
   .fi-col-title {
     margin: 0;
     font-family: var(--fig-font-family);
@@ -830,6 +870,15 @@
   .fi-col-left:not(.is-active) .fi-col-title,
   .fi-col-center:not(.is-active) .fi-col-title,
   .fi-col-right:not(.is-active) .fi-col-title { opacity: 0.5; }
+  /* PC(KB) 모드에선 active 컬럼 underline 숨김 — 사용자 요청. 패드에서만 표시. */
+  body.kb-mode .fi-col-underline { opacity: 0 !important; }
+  /* 타이틀과 첫 콘텐츠 사이 간격 살짝 더 — 좌(scroll wrapper) / 중(배낭) / 우(무기) 모두 적용.
+     안전포켓 / 방어구는 자체 margin-top 으로 이미 멀어져 있으므로 영향 없음. */
+  .fi-col-left  > .fi-col-scroll,
+  .fi-col-center > .fi-subsection:first-of-type,
+  .fi-col-right  > .fi-subsection:first-of-type {
+    margin-top: 24px;
+  }
 
   /* ===== 섹션 (sub-section: 컨테이너/바닥/배낭/안전포켓/방어구/무기) ===== */
   /* Figma: section label h=34 (lineHeight 34), gap 40 to grid */
@@ -860,6 +909,19 @@
     opacity: 0.8;
     line-height: 34px;
   }
+  /* 배낭 헤더 우측 무게 표시 — 아이콘 + 현재/최대. counter 와 같은 톤. */
+  .fi-bp-weight {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--fig-font-family);
+    font-size: var(--fig-font-section-label);
+    font-weight: 500;
+    color: var(--fig-color-text-primary);
+    opacity: 0.85;
+    line-height: 34px;
+  }
+  .fi-bp-weight img { width: 28px; height: 28px; object-fit: contain; opacity: 0.9; }
+  .fi-bp-weight .max { opacity: 0.6; }
   /* Figma: 인벤토리 컬럼 — 배낭 grid (3 rows = 640) 끝나고 gap 296 → 안전 포켓 라벨. 우리는 4 rows 가능 */
   .fi-safe-pocket { margin-top: 296px; }
   /* Figma: 무기 stack(991) 끝나고 gap 165 → 방어구 라벨. 안전 포켓 라벨과 수평 정렬. */
@@ -1214,8 +1276,14 @@
   }
   /* 부착물 아이콘 — slot 100x100 의 72% (= 72px). PUBG_ICON img 와 inline SVG 모두 적용. */
   .weapon-attach > svg,
-  .weapon-attach > img { width: 72px; height: 72px; object-fit: contain; }
-  .weapon-attach.empty > svg { opacity: 0.22; }
+  .weapon-attach > img { width: 100px; height: 100px; object-fit: contain; }
+  /* 빈 부착물 슬롯 — PUBG PNG 도 흰색 실루엣으로 보이도록 filter 적용 + 매우 희미하게.
+     "장착 가능한 placeholder" 라는 의미만 약하게 암시, 실제 부착 상태와 시각 차이 크게. */
+  .weapon-attach.empty > svg,
+  .weapon-attach.empty > img {
+    filter: brightness(0) invert(1);
+    opacity: 0.12;
+  }
   /* Rarity — body + stroke 를 두 background-image 레이어. */
   .weapon-attach.has[data-rarity="blue"] {
     background-image: var(--fig-rarity-blue-body), var(--fig-rarity-blue-stroke);
@@ -1239,12 +1307,7 @@
     background-image: var(--fig-rarity-green-body), var(--fig-rarity-green-stroke);
     --fi-cell-accent: var(--fig-rarity-green-accent);
   }
-  .weapon-attach .lbl-mini {
-    position: absolute; left: 4px; top: 3px;
-    font-size: 9px; color: rgba(220,232,238,0.78); letter-spacing: 0.1em;
-    text-transform: uppercase; pointer-events: none;
-    z-index: 3;
-  }
+  .weapon-attach .lbl-mini { display: none; }
   /* Focused gradient border — .fi-cell 과 동일한 CSS gradient + mask 트릭. */
   .weapon-attach:hover,
   .weapon-attach.focused,
@@ -1259,10 +1322,10 @@
   body.pad-mode .weapon-attach.fi-pad-focus::before {
     content: "";
     position: absolute;
-    inset: -4px;
-    border-radius: calc(var(--fig-radius-inner) + 4px);
+    inset: -8px;   /* 슬롯 외곽보다 8px 더 바깥 → 슬롯 edge 와 겹치지 않음 */
+    border-radius: calc(var(--fig-radius-inner) + 8px);
     background: var(--fi-focus-gradient);
-    padding: 4px;
+    padding: 5px;  /* ring 두께 5px (좀 더 잘 보이게) */
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
     -webkit-mask-composite: xor;
@@ -1273,6 +1336,43 @@
   .weapon-attach.drag-over {
     outline: 1.5px dashed rgba(80,200,230,0.70);
     background: rgba(80,160,200,0.18);
+  }
+  /* 드래그 시작 시 장착 가능한 장비/부착물/방어구 슬롯 표시 — 흰 테두리(요청). */
+  .fi-cell.drop-eligible,
+  .fi-weapon-slot.drop-eligible,
+  .weapon-attach.drop-eligible {
+    outline: 2px solid rgba(255,255,255,0.95);
+    outline-offset: -2px;
+    box-shadow: 0 0 12px rgba(255,255,255,0.45);
+  }
+  /* ===== Focused/Hover/Selected slot — screen-like 효과로 등급색이 더 쨍해지게.
+     기존 inset box-shadow (단순 흰 알파) 는 희부연해 보였음 → mix-blend-mode: overlay 의
+     흰색 오버레이로 변경. overlay 는 어두운 픽셀은 더 어둡게/밝은 픽셀은 더 밝게 만들지만
+     overlay-with-white 는 사실상 lighten-only 라 등급색의 채도/대비를 살리면서 밝아짐.
+     overlay 가 일부 브라우저에서 transform 부모와 충돌하면 screen 보다 안전한 동작 보장. */
+  .cell-focus-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.55);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    opacity: 0;
+    border-radius: inherit;
+    transition: opacity 0.08s;
+  }
+  .fi-cell.filled:hover > .cell-focus-screen,
+  .fi-cell.filled.focused > .cell-focus-screen,
+  .fi-cell.filled.selected > .cell-focus-screen,
+  body.pad-mode .fi-cell.filled.fi-pad-focus > .cell-focus-screen,
+  .fi-weapon-slot.has:hover > .cell-focus-screen,
+  .fi-weapon-slot.has.focused > .cell-focus-screen,
+  .fi-weapon-slot.has.selected > .cell-focus-screen,
+  body.pad-mode .fi-weapon-slot.has.fi-pad-focus > .cell-focus-screen,
+  .weapon-attach.has:hover > .cell-focus-screen,
+  .weapon-attach.has.focused > .cell-focus-screen,
+  .weapon-attach.has.selected > .cell-focus-screen,
+  body.pad-mode .weapon-attach.has.fi-pad-focus > .cell-focus-screen {
+    opacity: 1;
   }
   .weapon-attach.drag-invalid {
     outline: 1.5px dashed var(--red);
@@ -1407,16 +1507,12 @@
     /* 간략화된 흰색 실루엣 (rarity tint 안 함) — 시인성 우선 */
     color: rgba(255, 255, 255, 0.95);
   }
-  /* weapon-slot (860×480) — 좌하단은 attach-row 점유. 우상단 빈 영역에 배치. */
-  .fi-weapon-slot .cell-cat-icon {
-    left: auto; right: 36px; top: 36px; bottom: auto;
-    width: 96px; height: 96px;
-    opacity: 0.85;
-  }
-  /* weapon-attach (100×100) — strip 없는 작은 슬롯. 우하단 유지. */
+  /* weapon-slot (860×480) — 무기 칸에서는 카테고리 아이콘 비표시 (배낭에서는 .fi-cell 경로로 유지). */
+  .fi-weapon-slot .cell-cat-icon { display: none; }
+  /* weapon-attach (140×140) — strip 없는 슬롯. 우하단 유지. */
   .weapon-attach .cell-cat-icon {
-    left: auto; right: 4px; bottom: 4px;
-    width: 24px; height: 24px;
+    left: auto; right: 6px; bottom: 6px;
+    width: 32px; height: 32px;
     opacity: 0.85;
   }
   /* 아이콘 (가운데) */
@@ -1428,6 +1524,17 @@
   }
   .fi-cell.filled .cell-icon svg,
   .fi-cell.filled .cell-icon img { width: 128px; height: 128px; }
+  /* 호환 탄약 그린닷 — 슬롯 우상단. 현재 장착 무기 중 ammoType 일치하면 표시 (즉시 사용 가능 힌트). */
+  .cell-compat-dot {
+    position: absolute;
+    right: 8px; top: 8px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #b7ffb0 0%, #4ed24a 55%, #1f8a1a 100%);
+    box-shadow: 0 0 6px rgba(86, 220, 86, 0.85), inset 0 0 1px rgba(255,255,255,0.6);
+    pointer-events: none;
+    z-index: 4;
+  }
   /* 카운트 ×N (우측 하단 strip 위에) */
   .fi-cell.filled .cell-count {
     position: absolute;
@@ -1456,10 +1563,10 @@
   body.pad-mode .fi-cell.fi-pad-focus::before {
     content: "";
     position: absolute;
-    inset: -4px;
-    border-radius: calc(var(--fig-cell-radius) + 4px);
+    inset: -8px;
+    border-radius: calc(var(--fig-cell-radius) + 8px);
     background: var(--fi-focus-gradient);
-    padding: 4px;
+    padding: 5px;
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
     -webkit-mask-composite: xor;
@@ -1496,6 +1603,39 @@
     font-size: var(--fig-font-tpill-key);
     line-height: 1;
   }
+  /* 마우스 아이콘 — LMB / RMB / 더블클릭 / 드래그 (텍스트 대신 시각). */
+  .kk-mouse {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 38px;
+    color: #fff;
+  }
+  .kk-mouse svg { width: 22px; height: 30px; }
+  /* "+" 연결자 (CTRL + 클릭 같은 조합). */
+  .kk-plus { color: var(--fig-tpill-text); opacity: 0.7; font-weight: 700; font-size: var(--fig-font-tpill-key); margin: 0 4px; }
+  /* "홀드" 표시 — 키 박스 옆 작은 점 3개. */
+  .kk-hold {
+    display: inline-flex; align-items: center; gap: 2px;
+    margin-left: 4px;
+  }
+  .kk-hold > i {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--fig-tpill-text); opacity: 0.85;
+    display: inline-block;
+  }
+  /* 패드 버튼 — Xbox 컬러 원 (X 파랑 / A 초록 / B 빨강 / Y 노랑). */
+  .kk-pad {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    color: #fff; font-weight: 800;
+    font-size: var(--fig-font-tpill-key);
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 -3px 6px rgba(0,0,0,0.3);
+  }
+  .kk-pad[data-btn="X"] { background: #2d7fd9; }
+  .kk-pad[data-btn="A"] { background: #2a8f3c; }
+  .kk-pad[data-btn="B"] { background: #c43030; }
+  .kk-pad[data-btn="Y"] { background: #d4a015; color: #2b2208; }
   .fi-tpill-label {
     color: var(--fig-tpill-label);
     opacity: var(--fig-tpill-label-opacity);
@@ -1520,13 +1660,13 @@
     cursor: pointer;
     transition: outline 0.1s, opacity 0.1s;
   }
+  /* 무기 슬롯 — 등급 배경 복원(공통 rarity 변수 사용, alpha=0.5 적용됨). dual-bg-clip 다시 사용. */
   .fi-weapon-slot.has {
     opacity: 1;
     border: var(--fig-cell-stroke-w) solid transparent;
     background-clip: padding-box, border-box;
     background-origin: padding-box, border-box;
   }
-  /* Rarity — body + stroke 를 두 background-image 레이어. */
   .fi-weapon-slot.has[data-rarity="blue"] {
     background-image: var(--fig-rarity-blue-body), var(--fig-rarity-blue-stroke);
     --fi-cell-accent: var(--fig-rarity-blue-accent);
@@ -1549,25 +1689,19 @@
     background-image: var(--fig-rarity-green-body), var(--fig-rarity-green-stroke);
     --fi-cell-accent: var(--fig-rarity-green-accent);
   }
-  /* 하단 strip — .fi-cell.filled::after 와 동일한 곡률/색 */
-  .fi-weapon-slot.has::after {
-    content: "";
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: var(--fig-cell-strip-h);
-    background: var(--fig-cell-strip-bg);
-    border-radius: 0 0 calc(var(--fig-cell-radius) - var(--fig-cell-stroke-w)) calc(var(--fig-cell-radius) - var(--fig-cell-stroke-w));
-    z-index: 1;
-    pointer-events: none;
-  }
-  /* Accent — 좌하단 곡선 (cell-accent.svg) */
+  /* 무기 칸에서는 하단 검은 strip 비표시 (배낭의 .fi-cell.filled::after 는 유지). */
+  .fi-weapon-slot.has::after { content: none; }
+  /* Accent — 무기 슬롯은 하단 strip 가 없으므로 슬롯 바닥에 딱 붙임.
+     border-bottom-left-radius 로 슬롯 라운드 코너 밖으로 삐져나오지 않게 클립. */
   .fi-weapon-slot.has .cell-accent {
     position: absolute;
-    left: 0; top: calc(100% - 49px - 68.08px);
+    left: 0; top: calc(100% - 68.08px);
     width: 74.57px; height: 68.08px;
     background: var(--fi-cell-accent, transparent);
     -webkit-mask: url('figma-assets/cell-accent.svg') no-repeat left top / 100% 100%;
             mask: url('figma-assets/cell-accent.svg') no-repeat left top / 100% 100%;
+    border-bottom-left-radius: calc(var(--fig-cell-radius) - var(--fig-cell-stroke-w));
+    overflow: hidden;
     z-index: 0;
     pointer-events: none;
   }
@@ -1585,10 +1719,10 @@
   body.pad-mode .fi-weapon-slot.fi-pad-focus::before {
     content: "";
     position: absolute;
-    inset: -4px;
-    border-radius: calc(var(--fig-cell-radius) + 4px);
+    inset: -8px;
+    border-radius: calc(var(--fig-cell-radius) + 8px);
     background: var(--fi-focus-gradient);
-    padding: 4px;
+    padding: 5px;
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
     -webkit-mask-composite: xor;
@@ -1618,30 +1752,36 @@
     object-fit: contain;
     pointer-events: none;
   }
-  .fi-weapon-slot .weapon-ammo-caliber {
+  /* 하단 ammo 컬럼 — 위: 아이콘 + 구경 / 아래: 장전/잔탄. 세로 stack 으로 부착물 row 폭 침범 안 함. */
+  .fi-weapon-slot .weapon-ammo-col {
     position: absolute;
-    left: 694px; top: 340px;
+    right: 40px; bottom: 40px;
+    display: flex; flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
     font-family: var(--fig-font-family);
-    font-size: 36px;
-    font-weight: 500;
     color: var(--fig-color-text-primary);
     line-height: 1;
+  }
+  .fi-weapon-slot .weapon-ammo-top {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .fi-weapon-slot .weapon-ammo-icon {
+    width: 48px; height: 48px; object-fit: contain;
+  }
+  .fi-weapon-slot .weapon-ammo-caliber {
+    font-size: 32px; font-weight: 500;
   }
   .fi-weapon-slot .weapon-ammo-count {
-    position: absolute;
-    left: 691px; top: 406px;
     display: flex; align-items: baseline; gap: 4px;
-    font-family: var(--fig-font-family);
-    color: var(--fig-color-text-primary);
-    line-height: 1;
   }
-  .fi-weapon-slot .ammo-cur { font-size: 48px; font-weight: 700; }
-  .fi-weapon-slot .ammo-max { font-size: 36px; font-weight: 400; opacity: 0.6; }
+  .fi-weapon-slot .ammo-cur { font-size: 44px; font-weight: 700; }
+  .fi-weapon-slot .ammo-max { font-size: 32px; font-weight: 400; opacity: 0.6; }
   .fi-weapon-slot .weapon-attach-row {
     position: absolute;
-    left: 40px; top: 340px;
+    left: 40px; bottom: 40px;   /* 좌/하 동일 마진(40px). 슬롯 480, attach 140 기준 top 300 과 동치. */
     display: flex; gap: 10px;
-    z-index: 2;   /* 하단 strip(::after, z:1) 위에 표시 — 일부 픽셀 겹침 시 attach 우선. */
+    z-index: 2;
   }
   /* attach 슬롯 자체 스타일은 .weapon-attach 정의에서 처리. weapon-slot 내부 override 없음. */
   .fi-cell.filled[data-rarity="gray"]   { border-color: #7a8a8f; }
@@ -1658,26 +1798,29 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* 인벤 슬롯 호버 툴팁 — 흰 배경 + 검은 폰트(요청). rarity 식별은 좌측 보더 색으로. */
   .fi-detail {
     position: fixed;
     z-index: 100;
     width: 260px;
     padding: 10px 12px;
-    background: rgba(8,14,20,0.97);
-    border: 1px solid rgba(80,130,160,0.35);
-    border-left: 3px solid rgba(80,160,200,0.70);
-    font-size: 11px; color: rgba(175,200,212,0.85);
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(0,0,0,0.20);
+    border-left: 3px solid rgba(80,160,200,0.85);
+    font-size: 11px; color: rgba(20,28,38,0.85);
     line-height: 1.55;
     pointer-events: none;
     display: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.65);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
   }
   .fi-detail.visible { display: block; }
-  .fi-detail .name { color: rgba(220,232,238,0.96); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
-  .fi-detail .cat { color: rgba(120,155,170,0.65); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px; }
-  .fi-detail .desc { margin-top: 8px; color: rgba(175,200,212,0.80); }
-  .fi-detail .stats { margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 10px; color: rgba(120,155,170,0.70); letter-spacing: 0.12em; }
-  .fi-detail .stats b { color: rgba(210,225,232,0.90); font-weight: 600; }
+  /* 드래그 중엔 툴팁 숨김 — 드래그 ghost 와 겹쳐 가독성 떨어지는 문제 방지. */
+  body.fi-dragging .fi-detail { display: none !important; }
+  .fi-detail .name { color: rgba(15,20,28,0.98); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .fi-detail .cat { color: rgba(70,90,105,0.85); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px; }
+  .fi-detail .desc { margin-top: 8px; color: rgba(40,52,65,0.85); }
+  .fi-detail .stats { margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-size: 10px; color: rgba(70,90,105,0.85); letter-spacing: 0.12em; }
+  .fi-detail .stats b { color: rgba(15,20,28,0.95); font-weight: 700; }
   .fi-detail[data-rarity="green"]  { border-left-color: #5aaa60; }
   .fi-detail[data-rarity="blue"]   { border-left-color: #4a9fd4; }
   .fi-detail[data-rarity="purple"] { border-left-color: #9a60d4; }
@@ -1739,7 +1882,7 @@
     background: #ffffff; color: #000000;
     padding: 0 5px; height: 16px; line-height: 16px;
     font-size: 10px; font-weight: 900;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
   }
   .fi-mod-hint.danger {
     background: rgba(200,67,47,0.20);
@@ -2053,7 +2196,7 @@
     font-size: 13px; font-weight: 700;
     line-height: 22px;
     text-align: center;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.25);
     border-radius: 11px;
     font-variant-numeric: tabular-nums;
   }
@@ -2335,19 +2478,79 @@
   .gd-prompt {
     position: absolute;
     transform: translateY(-50%);
-    display: flex; align-items: center; gap: 8px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
     pointer-events: none;
     white-space: nowrap;
   }
+  .gd-prompt .gd-row { display: flex; align-items: center; gap: 8px; }
+  /* 호환 무기 흰색 실루엣 — 컨테이너/패딩 없음, 가로로 긴 weapon-m16 실루엣 사용.
+     drop-shadow 로 어두운 배경에서도 식별성 확보. 텍스트는 없음. */
+  .gd-prompt .gd-compat {
+    display: flex; gap: 6px; align-items: center;
+    margin-left: 30px;   /* key(22) + gap(8) 와 정렬 */
+  }
+  .gd-prompt .gd-compat img,
+  .gd-prompt .gd-compat svg {
+    width: 64px; height: auto; object-fit: contain;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.85));
+    opacity: 0.95;
+  }
+  /* 상위 등급 아이템 화살표 — 라벨 우측. */
+  .gd-prompt .gd-up {
+    color: #6ad4e8; font-weight: 900; font-size: 16px;
+    text-shadow: 0 0 6px rgba(106,212,232,0.7);
+    margin-left: 2px;
+  }
+  /* 키 가이드 — tap/hold 통일: 흰 배경 + 검은 글자. hold 는 키 바깥에 흰 테두리 ring 추가
+     (반투명 → 누름에 따라 시계방향으로 채워짐). */
   .gd-prompt .key {
+    position: relative;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px;
-    background: #ffffff; color: #000;
-    font-size: 12px; font-weight: 900;
+    width: 32px; height: 32px;
+    background: #ffffff;
+    color: #000;
+    font-size: 14px; font-weight: 900;
     letter-spacing: 0;
+    border-radius: 50%;
     box-shadow: 0 1px 5px rgba(0,0,0,0.75);
     flex: 0 0 auto;
   }
+  /* Ring SVG / hold-arrow 는 hold(container) 타입에서만 표시 */
+  .gd-prompt .key svg.key-ring,
+  .gd-prompt .key .hold-arrow { display: none; }
+  .gd-prompt[data-kind="container"] .key svg.key-ring,
+  .gd-prompt[data-kind="container"] .key .hold-arrow { display: block; }
+  /* Ring 은 흰 키 원 "바깥"에 그려져야 보임 — SVG 를 키보다 크게 잡고 위치를 음수로 확장. */
+  .gd-prompt .key svg.key-ring {
+    position: absolute;
+    left: -6px; top: -6px;
+    width: calc(100% + 12px); height: calc(100% + 12px);
+    pointer-events: none;
+  }
+  .gd-prompt .key svg.key-ring .ring-bg {
+    fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 2.5;
+  }
+  .gd-prompt .key svg.key-ring .ring-fg {
+    fill: none; stroke: #ffffff; stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 125.66;   /* 2*π*20 (ring r=20 in 44 viewBox) */
+    stroke-dashoffset: calc(125.66 * (1 - var(--p, 0)));
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));   /* 흰 위에 흰 — 어두운 글로우로 분리 */
+  }
+  /* 상단 아래로 뾰족한 삼각형 — 누름 affordance */
+  .gd-prompt .key .hold-arrow {
+    position: absolute;
+    left: 50%; top: -13px;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid rgba(255,255,255,0.95);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.65));
+    pointer-events: none;
+    z-index: 2;
+  }
+  .gd-prompt .key .key-letter { position: relative; z-index: 1; line-height: 1; }
   .gd-prompt .label {
     background: rgba(10,16,22,0.78);
     padding: 3px 8px;
@@ -2378,10 +2581,38 @@
     font-size: 12px;
     pointer-events: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba(214,168,74,0.5) transparent;
+    scrollbar-color: rgba(214,168,74,0.25) transparent;
   }
   #sidepanel::-webkit-scrollbar { width: 8px; }
   #sidepanel::-webkit-scrollbar-thumb { background: rgba(214,168,74,0.4); }
+  /* O 키 토글로 패널 숨김 — 인벤 열렸을 땐 이미 숨겨짐. */
+  body.sidepanel-hidden #sidepanel { display: none; }
+  body.fi-open #sidepanel-hint { display: none !important; }
+  /* 패널 숨김 상태에서도 "O 키로 열기" 힌트 뱃지는 우측 상단에 작게 유지. */
+  #sidepanel-hint {
+    position: fixed;
+    top: 16px; right: 16px;
+    z-index: 60;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(20,20,28,0.78);
+    border: 1px solid rgba(214,168,74,0.45);
+    color: var(--amber);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.15em;
+    pointer-events: none;
+  }
+  #sidepanel-hint .k {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px;
+    background: var(--amber);
+    color: #1a1408;
+    font-weight: 900;
+    border-radius: 3px;
+  }
+  body.sidepanel-hidden #sidepanel-hint { display: inline-flex; }
   #sidepanel .panel-header {
     padding: 10px 14px;
     background: rgba(0,0,0,0.4);
@@ -2461,7 +2692,7 @@
     background: #ffffff; color: #000000;
     font-size: 9px; font-weight: 900;
     vertical-align: middle; text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
   }
 </style>
 </head>
@@ -2599,19 +2830,28 @@
         </div>
       </div>
 
-      <!-- ===== 좌측 주변 컬럼 (128, 265) 862×1652 ===== -->
-      <div class="fig-node fi-col-left" data-fi-col="left" data-scope="col-left"
-           style="left:128px;top:265px;width:862px;height:1652px">
+      <!-- ===== 좌측 주변 컬럼 (128, 265) 862×1652 — 컨테이너 + 바닥 ===== -->
+      <div class="fig-node fi-col-left" id="fiColLeft" data-fi-col="left" data-scope="col-left"
+           style="left:120px;top:265px;width:880px;height:1652px">
         <div class="fi-col-title-row">
           <span class="fi-bumper pad-only" data-glyph="lb"><span>LB</span></span>
           <h2 class="fi-col-title">주변</h2>
           <span class="fi-bumper pad-only" data-glyph="rb"><span>RB</span></span>
         </div>
         <div class="fi-col-underline"></div>
-        <!-- 바닥 sub-section: nearbyGroundItems 데이터. 컨테이너는 별도 패널/팝업으로 처리. -->
-        <div class="fi-subsection" id="fiGroundSubsection">
-          <div class="fi-section-label">바닥</div>
-          <div class="fi-grid size-200x4" id="fiGroundGrid"></div>
+        <!-- 컨테이너 + 바닥을 한 스크롤 영역에 묶음 — 사용자 요청: 통합 스크롤. -->
+        <div class="fi-col-scroll" id="fiGroundScroll">
+          <div class="fi-subsection" id="fiContainerSubsection">
+            <div class="fi-section-label-row">
+              <span class="fi-section-label">컨테이너</span>
+              <span class="fi-section-counter"><span id="fiCnUsedNew">0</span></span>
+            </div>
+            <div class="fi-grid size-200x4" id="fiContainerGridLeft"></div>
+          </div>
+          <div class="fi-subsection" id="fiGroundSubsection">
+            <div class="fi-section-label">바닥</div>
+            <div class="fi-grid size-200x4" id="fiGroundGrid"></div>
+          </div>
         </div>
       </div>
 
@@ -2628,6 +2868,10 @@
           <div class="fi-section-label-row">
             <span class="fi-section-label">배낭</span>
             <span class="fi-section-counter"><span id="fiInvUsed">0</span>/<span id="fiInvTotal">15</span></span>
+            <span class="fi-bp-weight">
+              <img src="figma-assets/inv-3845-24418/icon-weight.svg" alt=""/>
+              <span><span id="fiBpWeight">0.0</span><span class="max">/<span id="fiBpWeightMax">50.0</span>kg</span></span>
+            </span>
           </div>
           <div class="fi-grid size-200x4" id="fiInvGrid"></div>
         </div>
@@ -2667,17 +2911,21 @@
 
       <!-- ===== 하단 footer (1982..2160) — 기존 키 가이드 + Figma T-pill 포맷 ===== -->
       <div class="fig-node fi-footer-row" style="left:0;top:1982px;width:3840px;height:178px">
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">드래그</span><span class="fi-tpill-label">이동</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">더블클릭</span><span class="fi-tpill-label">가져가기/장착</span></div>
+        <!-- KB row — 마우스 클릭 액션은 마우스 SVG 실루엣 / 키는 박스 letter / 조합은 + 연결자.
+             CTRL+클릭 = 다중선택(이전엔 별도 hint 였음). -->
+        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="드래그"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/><path d="M11 14 L11 19 M9 17 L11 19 L13 17" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></span><span class="fi-tpill-label">이동(드래그)</span></div>
+        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="더블클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/><text x="11" y="22" text-anchor="middle" font-size="7" font-weight="800" fill="currentColor" stroke="none">×2</text></svg></span><span class="fi-tpill-label">가져가기/장착</span></div>
+        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="우클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M19 11 L19 9 C19 4 16 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/></svg></span><span class="fi-tpill-label">기능 메뉴</span></div>
+        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">CTRL</span><span class="kk-plus">+</span><span class="kk-mouse" title="좌클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/></svg></span><span class="fi-tpill-label">다중 선택</span></div>
         <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">E</span><span class="fi-tpill-label">가져가기</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">E 홀드</span><span class="fi-tpill-label">모두 가져가기</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">우클릭</span><span class="fi-tpill-label">기능 메뉴</span></div>
+        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">E</span><span class="kk-hold"><i></i><i></i><i></i></span><span class="fi-tpill-label">모두 가져가기</span></div>
         <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">TAB</span><span class="fi-tpill-label">닫기</span></div>
-        <div class="fi-tpill-item pad-only"><span class="fi-tpill-key">X</span><span class="fi-tpill-label">가져가기</span></div>
-        <div class="fi-tpill-item pad-only"><span class="fi-tpill-key">X 홀드</span><span class="fi-tpill-label">모두 가져가기</span></div>
-        <div class="fi-tpill-item pad-only"><span class="fi-tpill-key">A</span><span class="fi-tpill-label">가방 이동</span></div>
-        <div class="fi-tpill-item pad-only"><span class="fi-tpill-key">Y</span><span class="fi-tpill-label">기능 메뉴</span></div>
-        <div class="fi-tpill-item pad-only"><span class="fi-tpill-key">B</span><span class="fi-tpill-label">닫기</span></div>
+        <!-- PAD row — Xbox 컬러 원 버튼 + "홀드" 점 인디케이터. -->
+        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="X">X</span><span class="fi-tpill-label">가져가기</span></div>
+        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="X">X</span><span class="kk-hold"><i></i><i></i><i></i></span><span class="fi-tpill-label">모두 가져가기</span></div>
+        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="A">A</span><span class="fi-tpill-label">가방 이동</span></div>
+        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="Y">Y</span><span class="fi-tpill-label">기능 메뉴</span></div>
+        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="B">B</span><span class="fi-tpill-label">닫기</span></div>
       </div>
 
       <!-- 중앙 빈 영역 드롭존 — column gap (좌 1014..우 1912 사이) 에 transparent overlay.
@@ -2724,6 +2972,7 @@
 
 <div id="fi-ctx-menu" role="menu"></div>
 
+<div id="sidepanel-hint"><span class="k">O</span><span>컨트롤</span></div>
 <div id="sidepanel">
   <div class="panel-header" id="panelHeader">
     <span>프로토타입 컨트롤</span>
@@ -2780,6 +3029,10 @@
       <input type="checkbox" id="autoRepick" checked/>
       <span>픽업 후 포커스 안정화</span>
     </label>
+    <label class="tgl">
+      <input type="checkbox" id="invMoveWhileOpen" checked/>
+      <span>인벤 열려도 캐릭터 이동 (WASD/좌측 스틱)</span>
+    </label>
     <div class="sec-sub" style="margin-top:10px">Q 홀드 표시 옵션</div>
     <label class="tgl">
       <input type="checkbox" id="showWheelUi" checked/>
@@ -2823,8 +3076,8 @@ const ICONS = {
     <rect x="22" y="11" width="0.5" height="2.4"/>
     <path d="M9 13.5 L13 13.5 L13.5 17 L9.5 17 Z"/>
     <rect x="7" y="13.5" width="2" height="2.8"/>
-    <line x1="10" y1="14.5" x2="13" y2="14.5" stroke="rgba(0,0,0,0.5)" stroke-width="0.4"/>
-    <line x1="10" y1="15.5" x2="13" y2="15.5" stroke="rgba(0,0,0,0.5)" stroke-width="0.4"/>`,
+    <line x1="10" y1="14.5" x2="13" y2="14.5" stroke="rgba(0,0,0,0.25)" stroke-width="0.4"/>
+    <line x1="10" y1="15.5" x2="13" y2="15.5" stroke="rgba(0,0,0,0.25)" stroke-width="0.4"/>`,
   smg: `
     <rect x="3" y="11" width="2.5" height="2.5"/>
     <rect x="2.5" y="11.7" width="3.5" height="0.8"/>
@@ -2843,8 +3096,8 @@ const ICONS = {
     <rect x="8.5" y="11.3" width="13" height="1.6"/>
     <rect x="21.5" y="11.5" width="2" height="1.2"/>
     <rect x="9" y="12.9" width="2.5" height="3"/>
-    <line x1="9.5" y1="14" x2="11" y2="14" stroke="rgba(0,0,0,0.5)" stroke-width="0.4"/>
-    <line x1="9.5" y1="15" x2="11" y2="15" stroke="rgba(0,0,0,0.5)" stroke-width="0.4"/>
+    <line x1="9.5" y1="14" x2="11" y2="14" stroke="rgba(0,0,0,0.25)" stroke-width="0.4"/>
+    <line x1="9.5" y1="15" x2="11" y2="15" stroke="rgba(0,0,0,0.25)" stroke-width="0.4"/>
     <rect x="9" y="7" width="6.5" height="3" rx="0.3"/>
     <rect x="8" y="7.5" width="1.2" height="2"/>
     <rect x="15.3" y="7.5" width="1.2" height="2"/>
@@ -2865,13 +3118,13 @@ const ICONS = {
     <rect x="6" y="9" width="12" height="3"/>
     <rect x="6" y="8" width="1.5" height="1"/>
     <rect x="16.5" y="8" width="1" height="1"/>
-    <rect x="9" y="9.5" width="3" height="1" fill="rgba(0,0,0,0.5)"/>
+    <rect x="9" y="9.5" width="3" height="1" fill="rgba(0,0,0,0.25)"/>
     <rect x="11.2" y="12" width="3" height="2.2"/>
     <path d="M12.8 14 Q12.8 16 11 16 L10 16 Q9 16 9 14" fill="none" stroke="currentColor" stroke-width="1.2"/>
     <path d="M14 12 L16.5 12 L17.4 18 L13 18 Z"/>
-    <line x1="14" y1="13.7" x2="16.7" y2="13.7" stroke="rgba(0,0,0,0.5)" stroke-width="0.35"/>
-    <line x1="14" y1="15" x2="16.8" y2="15" stroke="rgba(0,0,0,0.5)" stroke-width="0.35"/>
-    <line x1="14" y1="16.4" x2="17" y2="16.4" stroke="rgba(0,0,0,0.5)" stroke-width="0.35"/>
+    <line x1="14" y1="13.7" x2="16.7" y2="13.7" stroke="rgba(0,0,0,0.25)" stroke-width="0.35"/>
+    <line x1="14" y1="15" x2="16.8" y2="15" stroke="rgba(0,0,0,0.25)" stroke-width="0.35"/>
+    <line x1="14" y1="16.4" x2="17" y2="16.4" stroke="rgba(0,0,0,0.25)" stroke-width="0.35"/>
     <rect x="14.5" y="18" width="2" height="0.6"/>`,
   helmet: `
     <path d="M3 14 Q3 4 12 4 Q21 4 21 14 L21 16 L3 16 Z"/>
@@ -2886,7 +3139,7 @@ const ICONS = {
     <path d="M5 6 L19 6 L19 21 L5 21 Z"/>
     <path d="M3 5 L7 5 L7 12 L3 11 Z"/>
     <path d="M21 5 L17 5 L17 12 L21 11 Z"/>
-    <rect x="11" y="6" width="2" height="15" fill="rgba(0,0,0,0.5)"/>
+    <rect x="11" y="6" width="2" height="15" fill="rgba(0,0,0,0.25)"/>
     <rect x="6" y="8" width="5" height="3" fill="rgba(0,0,0,0.35)"/>
     <rect x="13" y="8" width="5" height="3" fill="rgba(0,0,0,0.35)"/>
     <line x1="6" y1="13" x2="11" y2="13" stroke="rgba(0,0,0,0.55)" stroke-width="0.5"/>
@@ -2932,7 +3185,7 @@ const ICONS = {
     <rect x="9" y="2" width="6" height="3" rx="0.4"/>
     <rect x="8" y="4" width="8" height="2" rx="0.3"/>
     <rect x="3" y="6" width="18" height="15" rx="1.2"/>
-    <rect x="3" y="6" width="18" height="3" fill="rgba(0,0,0,0.5)"/>
+    <rect x="3" y="6" width="18" height="3" fill="rgba(0,0,0,0.25)"/>
     <line x1="3" y1="9" x2="21" y2="9" stroke="rgba(0,0,0,0.4)" stroke-width="0.5"/>
     <rect x="11" y="10" width="2" height="10" fill="#c8432f"/>
     <rect x="7" y="14" width="10" height="2" fill="#c8432f"/>
@@ -2949,7 +3202,7 @@ const ICONS = {
     <rect x="9.5" y="9" width="5" height="6" fill="#d6a84a"/>
     <rect x="9.5" y="11.5" width="5" height="1" fill="rgba(0,0,0,0.7)"/>
     <text x="12" y="14" font-size="4" text-anchor="middle" fill="#000" font-weight="900">⚡</text>
-    <rect x="9.5" y="16.5" width="5" height="0.5" fill="rgba(0,0,0,0.5)"/>`,
+    <rect x="9.5" y="16.5" width="5" height="0.5" fill="rgba(0,0,0,0.25)"/>`,
   pain: `
     <rect x="10" y="3" width="4" height="2" fill="rgba(0,0,0,0.55)"/>
     <rect x="9" y="4" width="6" height="2" rx="0.3"/>
@@ -2982,7 +3235,7 @@ const ICONS = {
     <text x="19.5" y="14" font-size="2" text-anchor="middle" fill="#d6a84a" font-weight="700">R</text>`,
   ammoP: `
     <rect x="5" y="10" width="14" height="5.5" rx="0.5"/>
-    <rect x="5" y="10" width="14" height="1.2" fill="rgba(0,0,0,0.5)"/>
+    <rect x="5" y="10" width="14" height="1.2" fill="rgba(0,0,0,0.25)"/>
     <line x1="5" y1="11.7" x2="19" y2="11.7" stroke="rgba(0,0,0,0.35)" stroke-width="0.4"/>
     <path d="M7 12 L7.4 11.7 L7.8 11.7 L8.2 12 L8.2 14.7 L7 14.7 Z" fill="rgba(0,0,0,0.55)"/>
     <path d="M10 12 L10.4 11.7 L10.8 11.7 L11.2 12 L11.2 14.7 L10 14.7 Z" fill="rgba(0,0,0,0.55)"/>
@@ -3000,7 +3253,7 @@ const ICONS = {
     <line x1="8" y1="12" x2="16" y2="12" stroke="rgba(0,0,0,0.4)" stroke-width="0.5"/>
     <rect x="10.5" y="6.5" width="3" height="3" rx="0.3"/>
     <rect x="11" y="5" width="2" height="1.5" rx="0.2"/>
-    <rect x="13" y="11" width="2" height="2" rx="0.2" fill="rgba(0,0,0,0.5)"/>`,
+    <rect x="13" y="11" width="2" height="2" rx="0.2" fill="rgba(0,0,0,0.25)"/>`,
   scope8: `
     <rect x="1" y="11" width="2" height="2"/>
     <rect x="3" y="9" width="17" height="6" rx="1"/>
@@ -3047,7 +3300,7 @@ const ICONS = {
     <path d="M9.8 19 Q12 18.7 14.2 19 Q14.1 19.6 12 19.4 Q9.9 19.6 9.8 19 Z" fill="rgba(0,0,0,0.45)"/>`,
   mag: `
     <rect x="8.5" y="3" width="7" height="2.5" rx="0.3"/>
-    <rect x="8.5" y="3" width="7" height="0.8" fill="rgba(0,0,0,0.5)"/>
+    <rect x="8.5" y="3" width="7" height="0.8" fill="rgba(0,0,0,0.25)"/>
     <path d="M8.5 5.5 L15.5 5.5 L17 21.5 L7 21.5 Z"/>
     <rect x="9.5" y="6.5" width="5" height="1.6" rx="0.2" fill="rgba(0,0,0,0.55)"/>
     <ellipse cx="12" cy="7.3" rx="1.5" ry="0.5" fill="#d6a84a"/>
@@ -3075,8 +3328,8 @@ const ICONS = {
     <rect x="11" y="2" width="2" height="2"/>
     <rect x="10" y="3.5" width="4" height="1.5" rx="0.2"/>
     <rect x="8" y="5" width="8" height="16" rx="1.2"/>
-    <rect x="8" y="5" width="8" height="2" fill="rgba(0,0,0,0.5)"/>
-    <line x1="8" y1="7" x2="16" y2="7" stroke="rgba(0,0,0,0.5)" stroke-width="0.4"/>
+    <rect x="8" y="5" width="8" height="2" fill="rgba(0,0,0,0.25)"/>
+    <line x1="8" y1="7" x2="16" y2="7" stroke="rgba(0,0,0,0.25)" stroke-width="0.4"/>
     <rect x="9.5" y="8" width="5" height="0.5" fill="rgba(0,0,0,0.55)"/>
     <rect x="9.5" y="9.5" width="5" height="0.5" fill="rgba(0,0,0,0.55)"/>
     <circle cx="10.5" cy="13" r="0.55" fill="rgba(0,0,0,0.7)"/>
@@ -3089,7 +3342,7 @@ const ICONS = {
     <rect x="11" y="2" width="2" height="2"/>
     <rect x="10" y="3.5" width="4" height="1.5" rx="0.2"/>
     <rect x="8" y="5" width="8" height="16" rx="1.2"/>
-    <rect x="8" y="5" width="8" height="2" fill="rgba(0,0,0,0.5)"/>
+    <rect x="8" y="5" width="8" height="2" fill="rgba(0,0,0,0.25)"/>
     <rect x="8.5" y="8" width="7" height="0.7" fill="rgba(0,0,0,0.55)"/>
     <rect x="8.5" y="9.7" width="7" height="0.7" fill="rgba(0,0,0,0.55)"/>
     <rect x="8.5" y="11.4" width="7" height="0.7" fill="rgba(0,0,0,0.55)"/>
@@ -3110,7 +3363,7 @@ const ICONS = {
   cash: `
     <rect x="2" y="9" width="20" height="11" rx="1.2" fill="#3a7a3a"/>
     <rect x="2" y="9" width="20" height="11" rx="1.2" fill="none" stroke="#1f3f1f" stroke-width="0.7"/>
-    <rect x="3.5" y="10.5" width="17" height="8" rx="0.8" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+    <rect x="3.5" y="10.5" width="17" height="8" rx="0.8" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
     <circle cx="12" cy="14.5" r="3" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.6)" stroke-width="0.5"/>
     <text x="12" y="16.2" font-size="4.6" text-anchor="middle" fill="rgba(255,255,255,0.95)" font-weight="900" font-family="serif">$</text>
     <circle cx="5.5" cy="11.5" r="0.6" fill="rgba(255,255,255,0.45)"/>
@@ -3121,8 +3374,8 @@ const ICONS = {
     <path d="M5 11 Q5 4 12 4 Q19 4 19 11" fill="none" stroke="currentColor" stroke-width="1.8"/>
     <rect x="3" y="10" width="4" height="7" rx="1"/>
     <rect x="17" y="10" width="4" height="7" rx="1"/>
-    <rect x="4" y="11.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.5)"/>
-    <rect x="18" y="11.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.5)"/>
+    <rect x="4" y="11.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.25)"/>
+    <rect x="18" y="11.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.25)"/>
     <path d="M19 14 Q22 14.5 22 18" fill="none" stroke="currentColor" stroke-width="0.9"/>
     <circle cx="22" cy="18.5" r="0.7"/>
     <line x1="6" y1="11" x2="6" y2="9" stroke="currentColor" stroke-width="0.7"/>
@@ -3167,7 +3420,7 @@ const ICONS = {
     <rect x="3" y="14" width="18" height="3" rx="0.5"/>
     <rect x="2.5" y="16.5" width="3" height="2.5" rx="0.4"/>
     <rect x="18.5" y="16.5" width="3" height="2.5" rx="0.4"/>
-    <path d="M11.5 4 L12.5 4 L12.7 6 L11.3 6 Z" fill="rgba(0,0,0,0.5)"/>
+    <path d="M11.5 4 L12.5 4 L12.7 6 L11.3 6 Z" fill="rgba(0,0,0,0.25)"/>
     <line x1="6" y1="11" x2="18" y2="11" stroke="rgba(0,0,0,0.35)" stroke-width="0.6"/>`,
   helmet_l3: `
     <path d="M3.5 14 Q3.5 4 12 4 Q20.5 4 20.5 14 L20.5 16 L3.5 16 Z"/>
@@ -3176,7 +3429,7 @@ const ICONS = {
     <rect x="19" y="17" width="3.5" height="3.5" rx="0.5"/>
     <rect x="8" y="8" width="8" height="3" rx="0.5" fill="rgba(0,0,0,0.55)"/>
     <rect x="9" y="9" width="6" height="1" fill="rgba(255,255,255,0.25)"/>
-    <rect x="11" y="3" width="2" height="2" rx="0.3" fill="rgba(0,0,0,0.5)"/>
+    <rect x="11" y="3" width="2" height="2" rx="0.3" fill="rgba(0,0,0,0.25)"/>
     <line x1="5" y1="13" x2="19" y2="13" stroke="rgba(0,0,0,0.4)" stroke-width="0.6"/>`
 };
 
@@ -3189,9 +3442,11 @@ const PUBG_ICON = {
   sniper:   'figma-assets/pubg-icons/sniper.png',
   shotgun:  'figma-assets/pubg-icons/shotgun.png',
   pistol:   'figma-assets/pubg-icons/pistol.png',
-  helmet:   'figma-assets/pubg-icons/helmet.png',
-  // helmet_l1/l2/l3 은 PUBG 위키에 깨끗한 인벤토리 아이콘이 없어서(L1/L2 는 BoxInfo 스킨 변형, L3 는 3D 렌더만 존재)
-  // ICONS dict 의 인라인 SVG 실루엣을 사용 — 아래 PUBG_ICON 항목 의도적 누락. iconHtml() 폴백이 ICONS.helmet_l* 를 잡아 렌더.
+  helmet:    'figma-assets/pubg-icons/helmet.png',
+  // L1/L2/L3 모두 동일한 PUBG helmet.png 사용 (위키에 등급별 깨끗한 인벤토리 아이콘 없음 — 색상/레벨 구분은 rarity stroke 으로).
+  helmet_l1: 'figma-assets/pubg-icons/helmet.png',
+  helmet_l2: 'figma-assets/pubg-icons/helmet.png',
+  helmet_l3: 'figma-assets/pubg-icons/helmet.png',
   vest:     'figma-assets/pubg-icons/vest.png',
   pack:     'figma-assets/pubg-icons/pack.png',
   pack_l1:  'figma-assets/pubg-icons/pack_l1.png',
@@ -3744,6 +3999,7 @@ const state = {
   padExpandQL: false,           // LB held — analogous to keyboard Shift for QL expansion
   padSprint: false,             // RB held — sprint while moving
   padConnected: false,          // any gamepad detected
+  invMoveWhileOpen: true,       // 인벤 열린 상태에서 WASD/좌측 스틱으로 캐릭터 이동 허용
   showHidden: true,
   showUpgrade: true,
   autoRepick: true,
@@ -4198,6 +4454,44 @@ function frontmostGroundItem() {
   return best;
 }
 
+// 컨테이너 + 바닥 아이템 통합 frontmost — 둘 다 같은 score(d / max(0.35, dot)) 로 평가해 보고 있는 쪽이 이김.
+// 반환: { kind: 'container'|'ground', target } | null
+function frontmostInteractable() {
+  const fx = -Math.sin(player.yaw);
+  const fz = -Math.cos(player.yaw);
+  let best = null, bestScore = Infinity;
+  // Containers — nearestInteractable 의 3.2m 범위 안에서만.
+  for (const c of containers) {
+    const dx = c.mesh.position.x - player.pos.x;
+    const dz = c.mesh.position.z - player.pos.z;
+    const d = Math.hypot(dx, dz);
+    if (d > 3.2) continue;
+    if (d < 0.001) {
+      if (0.5 < bestScore) { best = { kind: 'container', target: c }; bestScore = 0.5; }
+      continue;
+    }
+    const dot = (dx * fx + dz * fz) / d;
+    if (dot < 0.25) continue;   // 컨테이너는 살짝 관대 (큰 오브젝트)
+    const score = d / Math.max(0.35, dot);
+    if (score < bestScore) { bestScore = score; best = { kind: 'container', target: c }; }
+  }
+  // Ground items — nearbyGroundItems 범위.
+  for (const e of nearbyGroundItems()) {
+    const dx = e.mesh.position.x - player.pos.x;
+    const dz = e.mesh.position.z - player.pos.z;
+    const d = Math.hypot(dx, dz);
+    if (d < 0.001) {
+      if (0.5 < bestScore) { best = { kind: 'ground', target: e }; bestScore = 0.5; }
+      continue;
+    }
+    const dot = (dx * fx + dz * fz) / d;
+    if (dot < 0.30) continue;
+    const score = d / Math.max(0.35, dot);
+    if (score < bestScore) { bestScore = score; best = { kind: 'ground', target: e }; }
+  }
+  return best;
+}
+
 // "Upgrade?" helper: is this item strictly better than what we have?
 function isUpgrade(item) {
   if (!state.showUpgrade) return false;
@@ -4263,8 +4557,12 @@ function renderQuickLoot() {
   if (qlFocusIndex >= visible.length) qlFocusIndex = visible.length - 1;
   if (qlFocusIndex < 0) qlFocusIndex = 0;
 
-  // dirty-check: uid 목록 + focus 인덱스가 같으면 DOM 재생성 skip
-  const cacheKey = 'W|' + visible.map(e => e.item.uid).join(',') + '|' + qlFocusIndex;
+  // dirty-check: uid 목록 + focus + 장착 무기 ammoType(호환 힌트 갱신 위해) 포함.
+  const eqSig = ['primary','secondary'].map(k => {
+    const w = inv.equip[k];
+    return w ? (w.def.ammoType || '') : '-';
+  }).join(',');
+  const cacheKey = 'W|' + visible.map(e => e.item.uid).join(',') + '|' + qlFocusIndex + '|' + eqSig;
   if (cacheKey !== _qlPrevKey) {
     _qlPrevKey = cacheKey;
 
@@ -4279,7 +4577,18 @@ function renderQuickLoot() {
       const def = it.def;
       const upgrade = isUpgrade(it);
       const focused = i === qlFocusIndex;
-      html += `<div class="ql-item ${focused ? 'focused' : ''}" data-rarity="${it.rarity}"><div class="icon-wrap">${iconHtml(def.iconType, 30)}</div><div class="info"><div class="name">${def.name}${upgrade ? '<span class="up">↑</span>' : ''}</div><div class="meta">${RARITY_KO[it.rarity]} · ${CAT_KO[def.cat]}</div></div><div class="qty">${it.qty > 1 ? '×' + it.qty : ''}</div></div>`;
+      // 포커싱된 ammo 또는 attach 가 장착 무기와 호환되면 무기 실루엣 표시(텍스트 없음).
+      let compatHint = '';
+      if (focused) {
+        const matched = compatibleEquippedWeapons(it);
+        if (matched.length > 0) {
+          const silhouettes = matched.map(() => `<img src="figma-assets/weapon-m16.png" alt=""/>`).join('');
+          compatHint = `<div class="compat-hint">${silhouettes}</div>`;
+        }
+      }
+      // 업그레이드는 인터랙션 UI 우측 별도 요소로 분리(요청). 기존 .name 내부 ↑ 제거.
+      const upMark = upgrade ? '<span class="upgrade-mark">↑</span>' : '';
+      html += `<div class="ql-item ${focused ? 'focused' : ''}" data-rarity="${it.rarity}"><div class="icon-wrap">${iconHtml(def.iconType, 30)}</div><div class="info"><div class="name">${def.name}</div><div class="meta">${RARITY_KO[it.rarity]} · ${CAT_KO[def.cat]}</div>${compatHint}</div><div class="qty">${it.qty > 1 ? '×' + it.qty : ''}</div>${upMark}</div>`;
     }
 
     elQLList.innerHTML = html;
@@ -4330,8 +4639,11 @@ function totalWeight() {
 // For primary weapons (def.equipSlot === 'primary'), considers BOTH primary
 // and secondary slots — fills empty first, otherwise replaces the worst-rarity
 // occupied slot if the new item beats it.
-function tryAddToInventory(item) {
+// opts.skipAutoAttach: 부착물 자동 장착 단계를 건너뜀.
+// 무기 해제 시 함께 분리된 부착물이 같은 무기(또는 다른 장착 무기)에 다시 자동 장착되는 것을 막기 위해 사용.
+function tryAddToInventory(item, opts) {
   const def = item.def;
+  const skipAutoAttach = !!(opts && opts.skipAutoAttach);
 
   if (def.equipSlot) {
     // Determine candidate equip slots (primary weapons get two)
@@ -4368,7 +4680,8 @@ function tryAddToInventory(item) {
   // 1b) Attachment auto-attach: if pickup is an attachment and any equipped
   //     weapon has a matching empty attach slot, install it there.
   //     Also auto-swap if the new attachment beats the equipped one (rarity).
-  if (def.attachType) {
+  //     skipAutoAttach: 무기 해제 경로에서는 동행한 부착물을 배낭으로 보내야 하므로 자동 장착 생략.
+  if (def.attachType && !skipAutoAttach) {
     // First try empty matching slot
     for (const wSlot of ['primary', 'secondary']) {
       const w = inv.equip[wSlot];
@@ -4593,6 +4906,29 @@ function pickupAll() {
   }
 }
 
+// 컨테이너 안의 모든 아이템을 가능한 만큼 배낭/장비로 회수. X 홀드(컨테이너 포커스) 용.
+function pickupAllFromContainer() {
+  if (!activeContainer || !activeContainer.contents.length) return;
+  let any = false;
+  const oldSnap = snapshotBackpack();
+  // 뒤에서부터 splice — index shift 회피.
+  for (let i = activeContainer.contents.length - 1; i >= 0; i--) {
+    const it = activeContainer.contents[i];
+    if (tryAddToInventory(it)) {
+      activeContainer.contents.splice(i, 1);
+      showToast(it);
+      any = true;
+    } else {
+      showToast(it, "공간 부족");
+    }
+  }
+  if (any) {
+    refreshInventoryBar();
+    if (state.fullInvOpen) renderFullInventory();
+    showInvPreview(diffChangedUids(oldSnap));
+  }
+}
+
 // Toast
 const elToasts = document.getElementById('pickup-toasts');
 function showToast(item, suffix) {
@@ -4633,27 +4969,41 @@ function nearestInteractable() {
 let interaction = null; // {target, t, total, kind}
 function startInteraction(target) {
   if (interaction) return;
-  // Search time differs by mode
-  let total;
-  if (target.kind === "container") total = state.mode === "EXT" ? 2.6 : 0.4;
-  else                              total = state.mode === "EXT" ? 3.4 : 0.7;
-  interaction = { target, t: 0, total };
+  // 컨테이너/시체 모두 고정 2초 홀드 (모드 무관, 사용자 요청). 키 ring 으로 진행 표시.
+  interaction = { target, t: 0, total: 2.0 };
 }
 function cancelInteraction() {
   interaction = null;
-  elPProg.style.width = "0%";
+  if (elPProg) elPProg.style.width = "0%";
 }
 function tickInteraction(dt) {
   if (!interaction) return;
   interaction.t += dt;
   const pct = Math.min(1, interaction.t / interaction.total);
-  elPProg.style.width = (pct * 100).toFixed(1) + "%";
+  // 진행률은 renderGroundDots 가 매 프레임 인라인 `style="--p:..."` 로 그리므로 별도 sync 불필요.
   if (pct >= 1) {
     interaction.target.searched = true;
     interaction.target.opened = true;
     openFullInventoryWith(interaction.target);
     interaction = null;
-    elPProg.style.width = "0%";
+    // 인벤이 막 열린 직후에도 사용자가 여전히 E/X 를 누르고 있어서, 다음 프레임의
+    // 인벤 모드 hold/tap 핸들러가 "새 입력"으로 인식해 cn 슬롯을 자동 픽업하는 버그 방지.
+    // 모든 관련 상태를 "이미 소진됨" 으로 마킹 → 키 떼기 전까진 어떤 액션도 발화 안 함.
+    keys.delete('e');
+    keys.delete('f');
+    _eHoldStart = 0;
+    _eHoldFired = true;
+    _fHoldStart = 0;
+    _fHoldFired = true;
+    _fiKbEHoldFired = true;
+    if (_fiKbEHoldTimer) { clearTimeout(_fiKbEHoldTimer); _fiKbEHoldTimer = null; }
+    fiMod.kbEHoldStart = 0;
+    fiMod.padXHoldStart = performance.now();
+    fiMod.padXHoldFired = true;
+    if (typeof padHold !== 'undefined') {
+      padHold.xHoldStart = 0;
+      padHold.xHoldFired = true;
+    }
   }
 }
 
@@ -4663,35 +5013,10 @@ function interactKeyLabel() {
   if (_lastInputMode === 'pad') return isExt ? "X (홀드)" : "X";
   return isExt ? "E (홀드)" : "E";
 }
-let _promptPrevKey = '';
+// 컨테이너/시체 인터랙션은 이제 gd-prompt (월드-공간 키 가이드 + ring 진행)로 표시.
+// 중앙 #interact-prompt 는 의도적으로 항상 hidden — 함수는 호환성 위해 남겨두고 동작만 no-op.
 function refreshInteractPrompt() {
-  const t = nearestInteractable();
-  const newKey = interaction
-    ? `interact:${interaction.target.kind}:${state.mode}`
-    : t ? `${t.kind}:${t.searched}:${state.mode}` : '';
-  if (newKey === _promptPrevKey && !interaction) {
-    // 상태 변화 없으면 active 클래스만 동기화
-    if (!t) elPrompt.classList.remove('active');
-    else elPrompt.classList.add('active');
-    return;
-  }
-  _promptPrevKey = newKey;
-
-  if (interaction) {
-    elPrompt.classList.add('active');
-    elPKey.textContent = interactKeyLabel();
-    elPText.textContent = interaction.target.kind === "container" ? "상자 검색 중" : "시체 검색 중";
-    elPSub.textContent = state.mode === "EXT" ? "익스트랙션 모드 — 검색 시간이 깁니다" : "";
-    return;
-  }
-  if (!t) { elPrompt.classList.remove('active'); return; }
-  elPrompt.classList.add('active');
-  elPKey.textContent = interactKeyLabel();
-  elPText.textContent = t.kind === "container"
-    ? (t.searched ? "상자 (검색됨) 다시 열기" : "상자 검색")
-    : (t.searched ? "시체 (검색됨) 다시 열기" : "시체 검색");
-  elPSub.textContent = state.mode === "EXT" ? "익스트랙션 — 검색 중 무방비 상태" : "BR — 빠르게 처리됩니다";
-  elPProg.style.width = "0%";
+  if (elPrompt) elPrompt.classList.remove('active');
 }
 
 // =====================================================
@@ -4841,10 +5166,11 @@ function fiUpdateModHint() {
     const progress = Math.min(1, elapsed / X_DROP_DURATION);
     const offset = 56 * (1 - progress);
     const focused = document.querySelector('#fullinv .fi-pad-focus');
-    const isGround = focused && focused.dataset.scope === 'ground';
+    const fscope = focused && focused.dataset.scope;
+    // ground 또는 cn 포커스 = "모두 가져가기" (안전). 그 외 inv/equip/attach = "버리기" (danger).
+    const isPickupAll = fscope === 'ground' || fscope === 'cn';
     elFIModHint.classList.add('active');
-    if (isGround) {
-      // ground 포커스: X 홀드 = 모두 가져가기 (danger 아님)
+    if (isPickupAll) {
       elFIModHint.classList.remove('danger');
       elFIModHint.innerHTML = `
         <svg class="x-ring" viewBox="0 0 22 22">
@@ -4853,7 +5179,6 @@ function fiUpdateModHint() {
         </svg>
         <span class="key">X</span><span>모두 가져가기</span>`;
     } else {
-      // 백팩/장비 포커스: X 홀드 = 바닥에 버리기 (danger)
       elFIModHint.classList.add('danger');
       elFIModHint.innerHTML = `
         <svg class="x-ring" viewBox="0 0 22 22">
@@ -4864,12 +5189,11 @@ function fiUpdateModHint() {
     }
     return;
   }
-  // Multi-select mode wins over Shift quick-move (per spec: shift disabled in multi)
-  if (fiMod.ctrl || fiSelected.size > 1) {
+  // CTRL 다중선택 안내는 하단 가이드로 이동됨. 떠다니는 hint 에는 "현재 N개 선택됨" 카운트만 표시.
+  if (fiSelected.size > 0) {
     elFIModHint.classList.remove('danger');
     elFIModHint.classList.add('active');
-    const sz = fiSelected.size;
-    elFIModHint.innerHTML = `<span class="key">CTRL</span><span>다중 선택</span>${sz > 0 ? ` <span style="color:var(--ink-1)">· ${sz}개 선택됨</span>` : ''}`;
+    elFIModHint.innerHTML = `<span>${fiSelected.size}개 선택됨</span>`;
     return;
   }
   if (fiMod.shift) {
@@ -5002,7 +5326,8 @@ function quickMove(scope, id) {
       const detached = detachAllFromWeapon(item);
       inv.backpack.push(item);
       for (const at of detached) {
-        if (!tryAddToInventory(at)) {
+        // skipAutoAttach: 분리된 부착물이 같은 무기/다른 장착 무기에 다시 흡수되지 않도록.
+        if (!tryAddToInventory(at, { skipAutoAttach: true })) {
           spawnGroundItemAt(at,
             player.pos.x + (Math.random() - 0.5) * 1.8,
             player.pos.z + (Math.random() - 0.5) * 1.8);
@@ -5231,6 +5556,7 @@ function renderFullInventory() {
     const id = `${weaponSlotKey}:${attachType}`;
     if (attached) {
       return `<div class="weapon-attach has" data-rarity="${attached.rarity}" data-scope="attach" data-id="${id}">
+        <div class="cell-focus-screen"></div>
         <span class="lbl-mini">${ATTACH_KO[attachType]}</span>
         ${iconHtml(attached.def.iconType, 24)}
         <div class="cell-cat-icon" data-cat="attach">${catIconHtml('attach')}</div>
@@ -5268,17 +5594,26 @@ function renderFullInventory() {
     const ammoCount = ammoTotalForWeapon(w);
     const ammoMax = w.def.magSize || 30;
     const attachHtml = slots.map(k => renderAttachSlot(slotKey, k, w)).join('');
+    // 무기 칸 전용 큰 이미지: rifle 은 기존 weapon-m16.png(고해상도) 우선, 그 외는 PUBG_ICON PNG 사용.
+    // PUBG 아이콘이 작은 해상도이긴 하나 SVG 실루엣보다는 식별성 우수 — 더 큰 리소스로 추후 교체 가능.
     const weaponImgSrc = (w.def.iconType === 'rifle')
       ? 'figma-assets/weapon-m16.png'
-      : '';
+      : (PUBG_ICON[w.def.iconType] || '');
     container.innerHTML = `
+      <div class="cell-focus-screen"></div>
       <div class="cell-accent"></div>
       <div class="cell-cat-icon" data-cat="weapon">${catIconHtml('weapon')}</div>
       <h3 class="weapon-name">${w.def.name}</h3>
-      ${weaponImgSrc ? `<img class="weapon-render" src="${weaponImgSrc}" alt=""/>` : `<div class="weapon-render" style="display:flex;align-items:center;justify-content:center;color:#fff">${iconHtml(w.def.iconType, 200)}</div>`}
-      <div class="weapon-ammo-caliber">${w.def.ammoType || ''}</div>
-      <div class="weapon-ammo-count">
-        <span class="ammo-cur">${ammoCount}</span><span class="ammo-max">/${ammoMax * 4}</span>
+      ${weaponImgSrc ? `<img class="weapon-render" src="${weaponImgSrc}" alt=""/>` : `<div class="weapon-render" style="display:flex;align-items:center;justify-content:center;color:#fff">${iconHtml(w.def.iconType, 320)}</div>`}
+      <div class="weapon-ammo-col">
+        <div class="weapon-ammo-top">
+          ${(() => {
+            const aid = AMMO_ID_BY_TYPE[w.def.ammoType];
+            return (aid && PUBG_ICON[aid]) ? `<img class="weapon-ammo-icon" src="${PUBG_ICON[aid]}" alt=""/>` : '';
+          })()}
+          <span class="weapon-ammo-caliber">${w.def.ammoType || ''}</span>
+        </div>
+        <div class="weapon-ammo-count"><span class="ammo-cur">${ammoCount}</span><span class="ammo-max">/${ammoMax * 4}</span></div>
       </div>
       <div class="weapon-attach-row">${attachHtml}</div>
     `;
@@ -5370,13 +5705,46 @@ function renderFullInventory() {
   }
 
   if (elFIWeight) elFIWeight.textContent = totalWeight().toFixed(1) + "/50.0";
+  // 배낭 헤더 우측 무게 — 아이콘 + 현재/최대.
+  const elBpW = document.getElementById('fiBpWeight');
+  if (elBpW) elBpW.textContent = totalWeight().toFixed(1);
 
   // Wire hover/click/drag handlers
   document.querySelectorAll('#fullinv [data-scope]').forEach(el => {
     const scope = el.dataset.scope;
     const id = el.dataset.id;
-    el.addEventListener('mouseenter', () => fiHandleHover(el));
-    el.addEventListener('mouseleave', () => fiHideDetail());
+    if (scope === 'attach') {
+      // 부착물 슬롯 위에 마우스가 있는 동안엔 부모 무기 슬롯을 비-드래그 상태로 강제.
+      // HTML5 draggable 이 부모/자식 중 누구를 source 로 잡을지가 환경마다 달라서,
+      // 부모를 명시적으로 끔으로써 드래그 시 반드시 attach 가 source 가 되도록 보장.
+      // mouseleave 시에는 부모에 무기가 있을 때만 draggable 복원.
+      el.addEventListener('mouseenter', () => {
+        const parent = el.closest('.fi-weapon-slot');
+        if (parent) parent.draggable = false;
+        fiHandleHover(el);
+      });
+      el.addEventListener('mouseleave', (ev) => {
+        const parent = el.closest('.fi-weapon-slot');
+        if (parent) {
+          const w = inv.equip[parent.dataset.id];
+          parent.draggable = !!w;
+        }
+        // 부모(무기 슬롯) 본체로 빠지면 무기 툴팁을 복원. 그 외엔 숨김.
+        // (mouseenter 가 이미 발생한 부모는 자동으로 다시 트리거되지 않으므로 수동 호출)
+        const to = ev.relatedTarget;
+        if (to && to.closest) {
+          const ancestor = to.closest('[data-scope]');
+          if (ancestor && ancestor !== el && ancestor.contains(el)) {
+            fiHandleHover(ancestor);
+            return;
+          }
+        }
+        fiHideDetail();
+      });
+    } else {
+      el.addEventListener('mouseenter', () => fiHandleHover(el));
+      el.addEventListener('mouseleave', () => fiHideDetail());
+    }
     // 중첩 슬롯(weapon-slot 안의 attach) 대응: 내부 슬롯의 click/contextmenu 가
     // 부모로 버블되어 무기 컨텍스트로 잡히는 문제 방지. stopPropagation 으로 차단.
     el.addEventListener('click',     (ev) => { ev.stopPropagation(); fiHandleClick(el, ev); });
@@ -5420,47 +5788,121 @@ function renderFullInventory() {
   fiUpdateModHint();
 }
 
-// 주변 아이템 패널 (좌측 컬럼 — 바닥 sub-section) 렌더.
-// 데이터 소스: nearbyGroundItems().
-// 셀 형식: Figma 4030-5023 rarity 그라데이션 카드 (accent + icon + count + bottom strip).
+// 주변 아이템 패널 (좌측 컬럼) — 컨테이너 + 바닥 두 sub-section 렌더, 빈 영역은 숨김.
+// 컨테이너: activeContainer.contents (탐색 완료시 자동 전달). 바닥: nearbyGroundItems().
+// 둘 다 비면 fi-col-left 자체 숨김 (헤더 포함, 사용자 요청).
 function renderFullInventoryGround() {
-  const gridEl = document.getElementById('fiGroundGrid');
-  const countEl = document.getElementById('fiGroundCount');
-  if (!gridEl) return;
+  const groundGrid = document.getElementById('fiGroundGrid');
+  const groundSec  = document.getElementById('fiGroundSubsection');
+  const cnGrid     = document.getElementById('fiContainerGridLeft');
+  const cnSec      = document.getElementById('fiContainerSubsection');
+  const cnCount    = document.getElementById('fiCnUsedNew');
+  const colLeft    = document.getElementById('fiColLeft');
+  const countEl    = document.getElementById('fiGroundCount');
+
+  // --- 컨테이너 sub-section ---
+  const cnList = (activeContainer && activeContainer.contents) ? activeContainer.contents : [];
+  if (cnSec) {
+    if (cnList.length === 0) {
+      cnSec.style.display = 'none';
+      if (cnGrid) cnGrid.innerHTML = '';
+    } else {
+      cnSec.style.display = '';
+      if (cnCount) cnCount.textContent = cnList.length;
+      let cnHtml = '';
+      cnList.forEach((it, idx) => {
+        cnHtml += renderRarityCellHtml(it, 'cn', idx);
+      });
+      if (cnGrid) cnGrid.innerHTML = cnHtml;
+    }
+  }
+
+  // --- 바닥 sub-section ---
   const list = nearbyGroundItems();
   if (countEl) countEl.textContent = list.length;
-  if (list.length === 0) {
-    gridEl.innerHTML = '';
-    return;
+  if (groundSec) {
+    if (list.length === 0) {
+      groundSec.style.display = 'none';
+      if (groundGrid) groundGrid.innerHTML = '';
+    } else {
+      groundSec.style.display = '';
+      let html = '';
+      for (const e of list) {
+        html += renderRarityCellHtml(e.item, 'ground', e.item.uid);
+      }
+      if (groundGrid) groundGrid.innerHTML = html;
+    }
   }
-  let html = '';
-  for (let i = 0; i < list.length; i++) {
-    const e = list[i];
-    const it = e.item;
-    html += renderRarityCellHtml(it, 'ground', it.uid);
+
+  // --- 둘 다 비면 컬럼 자체 hidden (헤더 포함) ---
+  if (colLeft) {
+    const empty = cnList.length === 0 && list.length === 0;
+    colLeft.style.visibility = empty ? 'hidden' : '';
   }
-  gridEl.innerHTML = html;
+  if (!groundGrid) return;
 }
 
+// 현재 장착된 무기(primary/secondary) 중 하나라도 이 ammo 아이템과 ammoType 일치 → 호환 true.
+// ammo 외 카테고리는 항상 false. AMMO_ID_BY_TYPE 의 역매핑으로 caliber 추출.
+const _AMMO_TYPE_BY_ID = {ammo556:"5.56", ammo762:"7.62", ammo9mm:"9mm", ammo45:"45acp", ammo12g:"12g"};
+function isAmmoCompatibleWithEquipped(item) {
+  if (!item || !item.def || item.def.cat !== 'ammo') return false;
+  const cal = _AMMO_TYPE_BY_ID[item.defId];
+  if (!cal) return false;
+  for (const k of ['primary', 'secondary']) {
+    const w = inv.equip[k];
+    if (w && w.def && w.def.ammoType === cal) return true;
+  }
+  return false;
+}
+// 부착물 → 현재 장착 무기 중 attachSlots 에 이 attachType 이 들어가는 게 있으면 호환.
+function isAttachCompatibleWithEquipped(item) {
+  if (!item || !item.def || !item.def.attachType) return false;
+  for (const k of ['primary', 'secondary']) {
+    const w = inv.equip[k];
+    if (w && w.def && w.def.attachSlots && w.def.attachSlots.includes(item.def.attachType)) return true;
+  }
+  return false;
+}
+// 호환되는 장착 무기 배열 반환 (HUD/QL 실루엣용). ammo + attach 둘 다 처리.
+function compatibleEquippedWeapons(item) {
+  if (!item || !item.def) return [];
+  const out = [];
+  if (item.def.cat === 'ammo') {
+    const cal = _AMMO_TYPE_BY_ID[item.defId];
+    if (!cal) return [];
+    for (const k of ['primary', 'secondary']) {
+      const w = inv.equip[k];
+      if (w && w.def && w.def.ammoType === cal) out.push(w);
+    }
+  } else if (item.def.attachType) {
+    for (const k of ['primary', 'secondary']) {
+      const w = inv.equip[k];
+      if (w && w.def && w.def.attachSlots && w.def.attachSlots.includes(item.def.attachType)) out.push(w);
+    }
+  }
+  return out;
+}
 // Figma 4030-5023 rarity 셀 HTML 생성기 (배낭/주변/장비/소모품 공용).
 function renderRarityCellHtml(item, scope, id) {
   const def = item.def;
   const qty = item.qty > 1 ? `<span class="cell-count">×${item.qty}</span>` : '';
+  const compat = (isAmmoCompatibleWithEquipped(item) || isAttachCompatibleWithEquipped(item))
+    ? `<div class="cell-compat-dot" title="장착 무기 호환"></div>` : '';
   return `<div class="fi-cell filled" data-rarity="${item.rarity}" data-scope="${scope}" data-id="${id}">
+    <div class="cell-focus-screen"></div>
     <div class="cell-accent"></div>
     <div class="cell-cat-icon" data-cat="${def.cat}">${catIconHtml(def.cat)}</div>
     <div class="cell-icon">${iconHtml(def.iconType, 128)}</div>
     ${qty}
+    ${compat}
   </div>`;
 }
 
 function fiHandleHover(el) {
-  const scope = el.dataset.scope;
-  const id = el.dataset.id;
-  let item = null;
-  if (scope === "equip") item = inv.equip[id];
-  else if (scope === "inv") item = inv.backpack[+id];
-  else if (scope === "cn" && activeContainer) item = activeContainer.contents[+id];
+  // fiResolveItem 이 inv/equip/cn/ground/attach/aggr 모두 처리.
+  // ground/attach 도 마우스 호버 시 사이드 툴팁이 떠야 한다는 사용자 요청 반영.
+  const item = fiResolveItem(el.dataset.scope, el.dataset.id);
   if (item) fiSetDetail(item, el);
   else fiHideDetail();
 }
@@ -5570,6 +6012,15 @@ function removeFromSource(srcScope, srcId) {
     weapon.attachments[attachType] = null;
     return at;
   }
+  if (srcScope === 'ground') {
+    // groundItems 의 uid 매칭 — 발견 시 mesh 제거 + 배열에서 splice.
+    // 사용자 요청: 주변 아이템을 장비/배낭에 드래그 시 바닥에서 사라져야 함.
+    const entry = groundItems.find(e => String(e.item.uid) === String(srcId));
+    if (!entry) return null;
+    const it = entry.item;
+    removeGroundEntry(entry);
+    return it;
+  }
   return null;
 }
 
@@ -5604,9 +6055,10 @@ function performTransfer(srcScope, srcId, tgtScope, tgtId) {
     }
   };
   // 분리된 부착물을 배낭에 추가, 공간 없으면 바닥에 떨어트림.
+  // skipAutoAttach: 분리된 부착물이 다른 장착 무기에 다시 흡수되는 것 방지.
   const _absorbDetachedToInv = () => {
     for (const at of detached) {
-      if (!tryAddToInventory(at)) {
+      if (!tryAddToInventory(at, { skipAutoAttach: true })) {
         spawnGroundItemAt(at,
           player.pos.x + (Math.random() - 0.5) * 1.8,
           player.pos.z + (Math.random() - 0.5) * 1.8);
@@ -5711,7 +6163,7 @@ function performTransfer(srcScope, srcId, tgtScope, tgtId) {
       else inv.backpack.push(cur);
       for (const at of curDetached) {
         if (srcScope === 'cn' && activeContainer) activeContainer.contents.push(at);
-        else if (!tryAddToInventory(at)) {
+        else if (!tryAddToInventory(at, { skipAutoAttach: true })) {
           spawnGroundItemAt(at,
             player.pos.x + (Math.random()-0.5)*1.8,
             player.pos.z + (Math.random()-0.5)*1.8);
@@ -5791,6 +6243,18 @@ function setPadFocus(el) {
   el.classList.add('fi-pad-focus');
   fiPadFocus.scope = el.dataset.scope;
   fiPadFocus.id = el.dataset.id;
+  // 포커스 scope → 탭(컬럼) 매핑. 탭 하단 underline 과 LB/RB 가이드가 자연스럽게 따라옴.
+  // ground → 좌(주변), inv → 중(배낭), equip/attach/aggr → 우(장비).
+  const colByScope = {
+    ground: 'left',
+    cn:     'left',   // 컨테이너도 주변 영역(좌측)
+    inv:    'center',
+    equip:  'right',
+    attach: 'right',
+    aggr:   'right',
+  };
+  const col = colByScope[fiPadFocus.scope];
+  if (col) fiSetActiveCol(col);
   // Tooltip auto-shows ONLY in pad mode. In KB+M mode, mouse hover drives the
   // tooltip — auto-showing here would pop a stuck tooltip on inventory open.
   if (_lastInputMode === 'pad') {
@@ -5822,30 +6286,63 @@ function reapplyPadFocus() {
   }
 }
 
-// Pad LB/RB → cycle focus between the three inventory panels (left/center/right).
-// Order: equip-slots ← LB | inv | cn → RB. Cyclic.
+// Pad LB/RB → 좌(주변) ↔ 중(배낭) ↔ 우(장비) 영역 순환.
+// 순환 시 해당 영역의 최상단 포커스 가능 아이템 자동 선택. 빈 패널은 건너뜀.
+// setPadFocus 가 scope → col 매핑으로 탭 하이라이트도 같이 갱신.
+function _fiFirstFocusableInPanel(panel) {
+  if (panel === 'ground') {
+    // 주변 영역 = 컨테이너(cn) + 바닥(ground). cn 이 DOM 상 위라 우선.
+    return document.querySelector('#fullinv [data-scope="cn"]')
+        || document.querySelector('#fullinv [data-scope="ground"]');
+  }
+  if (panel === 'inv') {
+    // 배낭: 빈 슬롯 스킵, 첫 아이템 슬롯만 후보.
+    for (const el of document.querySelectorAll('#fullinv [data-scope="inv"]')) {
+      if (fiIsPadFocusable(el)) return el;
+    }
+    return null;
+  }
+  if (panel === 'equip') {
+    // 장비 영역 최상단 = primary 무기 슬롯이 DOM 상 가장 위.
+    // primary 비어있어도 슬롯 자체는 포커스 가능(드롭 타겟). 그 다음 secondary/armor/aggr.
+    return document.querySelector('#fullinv [data-scope="equip"], #fullinv [data-scope="aggr"]');
+  }
+  return null;
+}
 function fiPadPanelSwitch(dir) {
-  // 신규 레이아웃: 좌 ground / 중 inv (배낭) / 우 equip (장비)
   const panels = ['ground', 'inv', 'equip'];
   const cur = fiPadFocus.scope;
   let panel = 'ground';
   if (cur === 'inv') panel = 'inv';
   else if (cur === 'equip' || cur === 'attach' || cur === 'aggr') panel = 'equip';
-  else if (cur === 'ground') panel = 'ground';
+  else if (cur === 'ground' || cur === 'cn') panel = 'ground';
   let idx = panels.indexOf(panel);
   if (idx < 0) idx = 0;
-  const newPanel = panels[(idx + dir + panels.length) % panels.length];
-  let target = null;
-  if (newPanel === 'ground') {
-    target = document.querySelector('#fullinv [data-scope="ground"]');
-  } else if (newPanel === 'inv') {
-    target = document.querySelector('#fullinv [data-scope="inv"]');
-  } else {
-    target = document.querySelector('#fullinv [data-scope="equip"], #fullinv [data-scope="aggr"]');
+  // 최대 3번까지 다음 패널 시도 — 빈 패널이면 그 다음으로 스킵.
+  for (let tries = 0; tries < panels.length; tries++) {
+    idx = (idx + dir + panels.length) % panels.length;
+    const target = _fiFirstFocusableInPanel(panels[idx]);
+    if (target) {
+      setPadFocus(target);
+      return;
+    }
   }
-  if (target) setPadFocus(target);
+  // 모두 비어있으면 그대로 유지(현실적으로 거의 없음).
 }
 
+// 패드에서 포커스 가능한 셀인지 — 배낭의 빈 슬롯은 제외(사용자 요청).
+// 장비/소모품의 빈 슬롯은 드롭 타겟으로 필요하므로 유지.
+function fiIsPadFocusable(el) {
+  const scope = el.dataset.scope;
+  if (!scope) return false;
+  // 컬럼-레벨 / 사이드 drop zone 은 큰 직사각형이라 셀 네비게이션 후보로 잡히면 안 됨.
+  // (이전: 좌측 col-left 가 cn cell 옆에 있어서 right-stick 으로 배낭 못 가던 원인)
+  if (scope.startsWith('col-')) return false;
+  if (scope === 'floor') return false;
+  // 배낭 빈 슬롯 스킵 (사용자 요청).
+  if (scope === 'inv' && !fiResolveItem('inv', el.dataset.id)) return false;
+  return true;
+}
 function fiPadFocusMove(direction) {
   const current = document.querySelector('#fullinv .fi-pad-focus');
   if (!current) {
@@ -5859,6 +6356,7 @@ function fiPadFocusMove(direction) {
   let best = null, bestScore = Infinity;
   for (const el of candidates) {
     if (el === current) continue;
+    if (!fiIsPadFocusable(el)) continue;
     // Skip elements that are not visible (e.g., container grid when no container open
     // still has cells — but they're inside the container panel which is visible too;
     // skip if rect has zero size, which happens for hidden elements)
@@ -5904,15 +6402,14 @@ function fiPadDropOnHoldComplete() {
   const el = document.querySelector('#fullinv .fi-pad-focus');
   if (!el) return false;
   const scope = el.dataset.scope;
-  // ground 는 이미 바닥 — 드롭 대상 아님
-  if (scope === 'floor' || scope === 'aggr' || scope === 'ground') return false;
+  // ground/cn 은 "바닥" 또는 "컨테이너" 영역 — 사용자가 가져오는 대상이지 버리는 대상이 아님.
+  if (scope === 'floor' || scope === 'aggr' || scope === 'ground' || scope === 'cn') return false;
   const item = fiResolveItem(scope, el.dataset.id);
   if (!item) return false;
   // Move item to floor (use same logic path as ctx menu drop)
   let removed = null;
   if (scope === 'inv')        { removed = inv.backpack.splice(+el.dataset.id, 1)[0]; }
   else if (scope === 'equip') { removed = inv.equip[el.dataset.id]; inv.equip[el.dataset.id] = null; }
-  else if (scope === 'cn' && activeContainer) { removed = activeContainer.contents.splice(+el.dataset.id, 1)[0]; }
   else if (scope === 'attach') {
     const [w, a] = el.dataset.id.split(':');
     const wp = inv.equip[w];
@@ -5927,6 +6424,15 @@ let _fiDragData = null;   // {scope, id} of source while dragging
 function onFIDragStart(ev) {
   const el = ev.currentTarget;
   if (!el.dataset.scope) return;
+  // 중첩 draggable 가드: dragstart 가 부모(el)에서 잡혔는데 실제 클릭 대상이 더 깊은
+  // [data-scope] 셀 안이라면, 부모의 드래그는 취소하고 자식 핸들러에게 위임.
+  // stopPropagation 만으로는 일부 환경(브라우저 quirk / pointer-events 조합)에서
+  // 부모 dragstart 가 먼저 실행되며 무기 전체가 끌려가는 케이스를 막기 위한 방어막.
+  const deeper = ev.target.closest && ev.target.closest('[data-scope]');
+  if (deeper && deeper !== el && el.contains(deeper)) {
+    ev.preventDefault();
+    return;
+  }
   const scope = el.dataset.scope;
   const id = el.dataset.id;
   // Floor zone and aggregate slots are never drag SOURCES.
@@ -5934,8 +6440,6 @@ function onFIDragStart(ev) {
   // Empty cells aren't draggable (we set draggable=false), but defensive guard:
   const item = fiResolveItem(scope, id);
   if (!item) { ev.preventDefault(); return; }
-  // 중첩 draggable(부착물 슬롯이 무기 슬롯 안에 있음) 처리: 자식의 dragstart 가
-  // 부모로 버블되어 무기 전체가 드래그되는 버그 방지. 자식 드래그 시점에 stopPropagation.
   ev.stopPropagation();
 
   // If the dragged source is part of a multi-selection (>1), drag the whole
@@ -5989,9 +6493,36 @@ function onFIDragStart(ev) {
   document.querySelectorAll('#fullinv [data-fi-col-drop]').forEach(el => el.classList.add('drag-armed'));
   document.querySelectorAll('#fullinv .fi-side-drop').forEach(el => el.classList.add('drag-armed'));
   document.getElementById('fullinv').setAttribute('data-drag-src', scope);
+  document.body.classList.add('fi-dragging');
+  fiHideDetail();
+  // 드래그 시작 시 — 받을 수 있는 장비/부착물/방어구 슬롯에 흰 테두리 마크.
+  fiMarkDropEligible();
+  // 드래그 중엔 캐릭터 이동 정지 (브라우저가 drag 중 keyup 을 누락해서 키 stuck 발생).
+  _clearAllInputState();
+}
+
+function fiMarkDropEligible() {
+  if (!_fiDragData || _fiDragData.length === 0) return;
+  // 장비 영역(무기, 부착물, 방어구) 한정 — 사용자 요청 "장비 칸에 착용할 수 있는 슬롯".
+  // tgtScope: equip (무기/방어구) / attach (부착물 sub-slot). inv/cn/floor 등은 제외.
+  document.querySelectorAll('#fullinv [data-scope="equip"], #fullinv [data-scope="attach"]').forEach(el => {
+    const tgtScope = el.dataset.scope;
+    const tgtId = el.dataset.id;
+    for (const src of _fiDragData) {
+      if (fiIsValidDrop(src.scope, src.id, tgtScope, tgtId)) {
+        el.classList.add('drop-eligible');
+        return;
+      }
+    }
+  });
+}
+function fiClearDropEligible() {
+  document.querySelectorAll('#fullinv .drop-eligible').forEach(e => e.classList.remove('drop-eligible'));
 }
 
 function onFIDragEnd(ev) {
+  document.body.classList.remove('fi-dragging');
+  fiClearDropEligible();
   document.querySelectorAll('#fullinv [data-fi-col-drop]').forEach(el => el.classList.remove('drag-armed', 'drag-active'));
   document.querySelectorAll('#fullinv .fi-side-drop').forEach(el => el.classList.remove('drag-armed', 'drag-active'));
   // Cleanup any stuck dragging/drag-over states. Multiple sources may have
@@ -6003,6 +6534,9 @@ function onFIDragEnd(ev) {
   if (fz) fz.classList.remove('drag-active', 'drag-armed');
   document.getElementById('fullinv').removeAttribute('data-drag-src');
   _fiDragData = null;
+  // 드래그 중 브라우저가 keyup 을 발화하지 않아 keys 에 키가 stuck 되는 버그 (한 방향 무한 이동) 방지.
+  // 드래그 종료 시 입력 state 일괄 클리어 — 사용자가 다시 WASD 누르면 이동 재개.
+  _clearAllInputState();
 }
 
 function onFIDragOver(ev) {
@@ -6133,8 +6667,21 @@ function fiHandleRightClick(el) {
 }
 
 function _initPadFocusForOpen() {
-  // First time opening (or after a reset) → start at primary equip slot.
-  if (!fiPadFocus.scope) {
+  // 인벤 오픈 시 포커스 우선순위: 컨테이너(cn) → 주변 바닥(ground) → 배낭 첫 아이템(inv) → 장비(primary).
+  // 컨테이너 탐색 직후라면 cn 이 가장 자연스러운 시작점.
+  if (activeContainer && activeContainer.contents && activeContainer.contents.length > 0) {
+    fiPadFocus.scope = 'cn';
+    fiPadFocus.id = '0';
+    return;
+  }
+  const groundList = nearbyGroundItems();
+  if (groundList.length > 0) {
+    fiPadFocus.scope = 'ground';
+    fiPadFocus.id = String(groundList[0].item.uid);
+  } else if (inv.backpack.length > 0) {
+    fiPadFocus.scope = 'inv';
+    fiPadFocus.id = '0';
+  } else {
     fiPadFocus.scope = 'equip';
     fiPadFocus.id = 'primary';
   }
@@ -6166,6 +6713,13 @@ function fiCycleActiveCol(dir) {
   fiSetActiveCol(FI_COL_ORDER[next]);
 }
 
+// 캐릭터 이동 시 주변 ground 리스트 변화를 감지하기 위한 signature. 매 프레임 루프에서
+// 현재 nearbyGroundItems uid 목록과 비교 → 다르면 renderFullInventory 재호출.
+let _fiGroundSig = '';
+function _computeGroundSig() {
+  return nearbyGroundItems().map(e => e.item.uid).join(',');
+}
+
 function openFullInventoryWith(target) {
   activeContainer = target || null;
   state.fullInvOpen = true;
@@ -6176,6 +6730,7 @@ function openFullInventoryWith(target) {
   if (mouseLocked) document.exitPointerLock();
   _initPadFocusForOpen();
   renderFullInventory();
+  _fiGroundSig = _computeGroundSig();
 }
 function openFullInventoryAlone() {
   activeContainer = null;
@@ -6187,6 +6742,7 @@ function openFullInventoryAlone() {
   if (mouseLocked) document.exitPointerLock();
   _initPadFocusForOpen();
   renderFullInventory();
+  _fiGroundSig = _computeGroundSig();
 }
 function closeFullInventory() {
   state.fullInvOpen = false;
@@ -6437,35 +6993,79 @@ const elGroundDots = document.getElementById('groundDots');
 const _tmpVec3 = new THREE.Vector3();
 const _camForward = new THREE.Vector3();
 
+// 키 마크업 — ring SVG + 상단 hold-arrow 항상 emit (data-kind 별 CSS show/hide).
+// progress: 0~1. 인라인 `--p` 로 DOM 매 프레임 재생성에도 진행률이 유지됨.
+function _gdKeyHtml(keyChar, progress) {
+  const p = (progress || 0).toFixed(3);
+  // viewBox 44x44, r=20 → ring 이 키 바깥(32x32 키 + 6px 여유) 둘레에 그려짐. dasharray=125.66 (=2π·20).
+  return `<span class="key" style="--p:${p}"><svg class="key-ring" viewBox="0 0 44 44"><circle class="ring-bg" cx="22" cy="22" r="20"/><circle class="ring-fg" cx="22" cy="22" r="20" transform="rotate(-90 22 22)"/></svg><span class="hold-arrow"></span><span class="key-letter">${keyChar}</span></span>`;
+}
 function renderGroundDots() {
   if (state.fullInvOpen) { elGroundDots.innerHTML = ''; return; }
   const list = nearbyGroundItems();
-  if (list.length === 0) { elGroundDots.innerHTML = ''; return; }
+  // 양쪽 모두 비면 표시 X.
+  if (list.length === 0 && containers.length === 0) { elGroundDots.innerHTML = ''; return; }
 
-  // 컨테이너가 상호작용 범위 안에 있으면 E/X는 컨테이너 검색으로 동작하므로
-  // 바닥 아이템의 픽업 프롬프트는 띄우지 않고 흰 점만 표시한다.
-  const containerInRange = !!nearestInteractable();
-  const bestEntry = containerInRange ? null : frontmostGroundItem();
+  // 포커싱 = 보고 있는 것 (컨테이너 vs 바닥 동등 평가). 사용자: "원하는 걸 인터랙션 할 수 있어야".
+  const front = frontmostInteractable();
+  const bestContainer = (front && front.kind === 'container') ? front.target : null;
+  const bestGround    = (front && front.kind === 'ground')    ? front.target : null;
   const W = window.innerWidth, H = window.innerHeight;
+  const keyChar = state.padConnected ? 'X' : 'E';
   let html = '';
+
+  // 1) Ground items
   for (const e of list) {
     _tmpVec3.set(e.mesh.position.x, e.mesh.position.y + 0.35, e.mesh.position.z);
     _tmpVec3.project(camera);
-    if (_tmpVec3.z > 1) continue;  // 카메라 뒤
+    if (_tmpVec3.z > 1) continue;
     const sx = (_tmpVec3.x * 0.5 + 0.5) * W;
-    const sy = (-_tmpVec3.y * 0.5 + 0.5) * H;
-    if (e === bestEntry) {
+    const rawSy = (-_tmpVec3.y * 0.5 + 0.5) * H;
+    // 시야를 높이면 바닥 아이템의 화면 좌표가 아래로 밀려서 prompt 가 화면 밖으로 나감.
+    // 포커싱 prompt 는 하단 안전 영역(~120px) 안에 클램프, 비포커싱 dot 은 작은 margin 만.
+    const sy = rawSy;
+    const promptY = Math.min(rawSy, H - 120);
+    const dotY = Math.min(Math.max(rawSy, 10), H - 14);
+    if (e === bestGround) {
       const it = e.item;
       const qty = it.qty > 1 ? `<span class="qty">×${it.qty}</span>` : '';
-      const keyChar = state.padConnected ? 'X' : 'E';
-      html += `<div class="gd-prompt" style="left:${sx + 14}px; top:${sy}px">
-        <span class="key">${keyChar}</span>
-        <span class="label" data-rarity="${it.rarity}">${it.def.name}${qty}</span>
+      // 호환 무기 실루엣 — ammo 또는 attach (compatibleEquippedWeapons 가 둘 다 처리).
+      let compatHtml = '';
+      const matched = compatibleEquippedWeapons(it);
+      if (matched.length > 0) {
+        const silhouettes = matched.map(() => `<img src="figma-assets/weapon-m16.png" alt=""/>`).join('');
+        compatHtml = `<div class="gd-compat">${silhouettes}</div>`;
+      }
+      const upHtml = isUpgrade(it) ? '<span class="gd-up">↑</span>' : '';
+      html += `<div class="gd-prompt" data-kind="ground" style="left:${sx + 14}px; top:${promptY}px">
+        <div class="gd-row">${_gdKeyHtml(keyChar)}<span class="label" data-rarity="${it.rarity}">${it.def.name}${qty}</span>${upHtml}</div>
+        ${compatHtml}
       </div>`;
     } else {
-      html += `<div class="gd-dot" style="left:${sx}px; top:${sy}px"></div>`;
+      html += `<div class="gd-dot" style="left:${sx}px; top:${dotY}px"></div>`;
     }
   }
+
+  // 2) Containers — 바닥 아이템과 동일 시각 언어(흰 원 dot / 포커싱 시 gd-prompt "탐색").
+  for (const c of containers) {
+    _tmpVec3.set(c.mesh.position.x, c.mesh.position.y + 0.55, c.mesh.position.z);
+    _tmpVec3.project(camera);
+    if (_tmpVec3.z > 1) continue;
+    const sx = (_tmpVec3.x * 0.5 + 0.5) * W;
+    const rawSy = (-_tmpVec3.y * 0.5 + 0.5) * H;
+    const promptY = Math.min(rawSy, H - 120);
+    const dotY = Math.min(Math.max(rawSy, 10), H - 14);
+    if (c === bestContainer) {
+      // 인터랙션이 진행 중이고 대상이 이 컨테이너면 진행률을 키 ring 에 표시.
+      const prog = (interaction && interaction.target === c) ? Math.min(1, interaction.t / interaction.total) : 0;
+      html += `<div class="gd-prompt" data-kind="container" style="left:${sx + 14}px; top:${promptY}px">
+        <div class="gd-row">${_gdKeyHtml(keyChar, prog)}<span class="label">탐색</span></div>
+      </div>`;
+    } else {
+      html += `<div class="gd-dot gd-dot-cn" style="left:${sx}px; top:${dotY}px"></div>`;
+    }
+  }
+
   elGroundDots.innerHTML = html;
 }
 
@@ -6490,6 +7090,12 @@ window.addEventListener('keydown', e => {
   }
   if (k === 'escape') {
     if (state.fullInvOpen) { closeFullInventory(); return; }
+  }
+  // O — 우측 프로토타입 컨트롤 패널 토글. 인벤 닫힌 상태에서만 작동.
+  if (k === 'o' && !e.repeat && !state.fullInvOpen) {
+    e.preventDefault();
+    document.body.classList.toggle('sidepanel-hidden');
+    return;
   }
   // Q (hold) → 투척/회복 라디얼 휠. e.repeat 무시해서 keydown 반복 시 재오픈 안 함.
   if (k === 'q' && !e.repeat && !state.fullInvOpen) {
@@ -6528,9 +7134,11 @@ window.addEventListener('keydown', e => {
         fiUpdateModHint();
       }
     } else {
-      const t = nearestInteractable();
-      if (t) {
-        startInteraction(t);
+      // 사용자가 "보고 있는" 대상이 컨테이너면 탐색 시작, ground 아이템이면 픽업 hold 타이머.
+      // 컨테이너가 범위 안에 있어도 ground 를 보고 있으면 ground 픽업이 우선.
+      const front = frontmostInteractable();
+      if (front && front.kind === 'container') {
+        startInteraction(front.target);
       } else {
         if (!_eHoldStart) _eHoldStart = performance.now();
       }
@@ -6626,6 +7234,29 @@ renderer.domElement.addEventListener('click', () => {
 });
 document.addEventListener('pointerlockchange', () => {
   mouseLocked = document.pointerLockElement === renderer.domElement;
+});
+
+// 포커스 잃을 때(Alt-Tab/개발자 도구/다른 창 클릭) 브라우저가 keyup 을 안 보내서 키가 stuck 됨.
+// 캐릭터가 한 방향으로 계속 움직이는 버그 원인. blur / visibilitychange 에서 모든 입력 state 클리어.
+function _clearAllInputState() {
+  keys.clear();
+  padWish.x = 0; padWish.z = 0; padWish.jumpQueued = false;
+  fiMod.shift = false;
+  fiMod.ctrl = false;
+  fiMod.kbEHoldStart = 0;
+  if (typeof _fiKbEHoldTimer !== 'undefined' && _fiKbEHoldTimer) {
+    clearTimeout(_fiKbEHoldTimer);
+    _fiKbEHoldTimer = null;
+  }
+  if (typeof _fiKbEHoldFired !== 'undefined') _fiKbEHoldFired = false;
+  if (typeof _eHoldStart !== 'undefined') _eHoldStart = 0;
+  if (typeof _eHoldFired !== 'undefined') _eHoldFired = false;
+  if (typeof _fHoldStart !== 'undefined') _fHoldStart = 0;
+  if (typeof _fHoldFired !== 'undefined') _fHoldFired = false;
+}
+window.addEventListener('blur', _clearAllInputState);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) _clearAllInputState();
 });
 let _lastMouseX = null, _lastMouseY = null;
 document.addEventListener('mousemove', e => {
@@ -6753,43 +7384,41 @@ function applyShake(dt) {
 
 const STEP_HEIGHT = 0.6;
 function updatePlayer(dt) {
-  // Disable movement when full inventory is open
-  if (state.fullInvOpen) {
+  // 옵션 OFF + 인벤 열림 → 이동 차단(기존 동작). ON 이면 WASD/좌측 스틱 으로 항상 이동.
+  if (state.fullInvOpen && !state.invMoveWhileOpen) {
     player.vel.x = 0; player.vel.z = 0;
+    player.vel.y -= 12 * dt;
   } else {
-    const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
-    const right   = new THREE.Vector3( Math.cos(player.yaw), 0, -Math.sin(player.yaw));
-    const wish = new THREE.Vector3();
-    if (keys.has('w')) wish.add(forward);
-    if (keys.has('s')) wish.sub(forward);
-    if (keys.has('d')) wish.add(right);
-    if (keys.has('a')) wish.sub(right);
-    // KB direction is binary (0 or 1 length per axis); normalize for diagonals.
-    if (wish.lengthSq() > 0) wish.normalize();
-    // Combine with gamepad analog stick wish.
-    if (Math.abs(padWish.x) > 0 || Math.abs(padWish.z) > 0) {
-      const padVec = new THREE.Vector3();
-      padVec.addScaledVector(forward, -padWish.z);  // stick up (negative Y) = forward
-      padVec.addScaledVector(right,    padWish.x);
-      if (wish.lengthSq() === 0) {
-        wish.copy(padVec);   // pad alone — keep analog magnitude (≤1)
-      } else {
-        wish.add(padVec);
-        if (wish.length() > 1) wish.normalize();
-      }
-    }
-    const sprinting = keys.has('shift') || state.padSprint;
-    let sp = sprinting ? player.sprint : player.speed;
-    // 앉기: 이동 속도 50% (스프린트는 자동 해제 효과)
-    if (player.crouched) sp = player.speed * 0.5;
-    player.vel.x = wish.x * sp;
-    player.vel.z = wish.z * sp;
-    if ((keys.has(' ') || padWish.jumpQueued) && player.onGround) {
-      player.vel.y = 5.0; player.onGround = false;
-      padWish.jumpQueued = false;
+  const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+  const right   = new THREE.Vector3( Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+  const wish = new THREE.Vector3();
+  if (keys.has('w')) wish.add(forward);
+  if (keys.has('s')) wish.sub(forward);
+  if (keys.has('d')) wish.add(right);
+  if (keys.has('a')) wish.sub(right);
+  if (wish.lengthSq() > 0) wish.normalize();
+  if (Math.abs(padWish.x) > 0 || Math.abs(padWish.z) > 0) {
+    const padVec = new THREE.Vector3();
+    padVec.addScaledVector(forward, -padWish.z);
+    padVec.addScaledVector(right,    padWish.x);
+    if (wish.lengthSq() === 0) {
+      wish.copy(padVec);
+    } else {
+      wish.add(padVec);
+      if (wish.length() > 1) wish.normalize();
     }
   }
+  const sprinting = keys.has('shift') || state.padSprint;
+  let sp = sprinting ? player.sprint : player.speed;
+  if (player.crouched) sp = player.speed * 0.5;
+  player.vel.x = wish.x * sp;
+  player.vel.z = wish.z * sp;
+  if ((keys.has(' ') || padWish.jumpQueued) && player.onGround) {
+    player.vel.y = 5.0; player.onGround = false;
+    padWish.jumpQueued = false;
+  }
   player.vel.y -= 12 * dt;
+  }   // end else (movement enabled branch)
 
   const prevY = player.pos.y;
   player.pos.addScaledVector(player.vel, dt);
@@ -6980,9 +7609,20 @@ function pollGamepad(dt) {
   const anyAxisActive = pad.axes.some(a => Math.abs(a) > PAD_DEADZONE);
   if (anyButtonPressed || anyAxisActive) setInputMode('pad');
 
+  // 좌측 스틱 용도 분기:
+  //   - 인벤 닫힘 OR (인벤 열림 + 이동 옵션 ON) → padWish 갱신 (캐릭터 이동)
+  //   - 인벤 열림 + 이동 옵션 OFF                   → padWish=0, 좌측 스틱은 슬롯 nav 로 사용
+  const _padLeftForMove = !state.fullInvOpen || state.invMoveWhileOpen;
+  if (_padLeftForMove) {
+    padWish.x = applyDeadzone(pad.axes[0] || 0);
+    padWish.z = applyDeadzone(pad.axes[1] || 0);
+  } else {
+    padWish.x = 0; padWish.z = 0;
+  }
+
   // ============================================================
   // ===== Inventory mode — cell navigation & item actions =======
-  // When fullInvOpen, the pad drives the inventory UI, NOT the world.
+  // When fullInvOpen, 우측 스틱/D-pad 가 슬롯 포커스를 이동.
   if (state.fullInvOpen) {
     // ----- Context menu mode: hijack pad for menu navigation -----
     // When the ctx menu is open, all pad input is consumed by the menu.
@@ -6999,12 +7639,12 @@ function pollGamepad(dt) {
           _fiCtxFocusIdx = (_fiCtxFocusIdx + 1) % count;
           fiUpdateCtxFocusVisual();
         }
-        // L-stick vertical with throttle
-        const ly = applyDeadzone(pad.axes[1] || 0);
-        if (Math.abs(ly) > 0.5) {
+        // 옵션 ON → 우측 스틱(axes[3]), OFF → 좌측 스틱(axes[1]) 로 ctx 항목 스크롤.
+        const _navY = applyDeadzone(pad.axes[state.invMoveWhileOpen ? 3 : 1] || 0);
+        if (Math.abs(_navY) > 0.5) {
           _stickNavTimer -= dt;
           if (_stickNavTimer <= 0) {
-            _fiCtxFocusIdx = (_fiCtxFocusIdx + (ly > 0 ? 1 : -1) + count) % count;
+            _fiCtxFocusIdx = (_fiCtxFocusIdx + (_navY > 0 ? 1 : -1) + count) % count;
             fiUpdateCtxFocusVisual();
             _stickNavTimer = STICK_NAV_INTERVAL;
           }
@@ -7022,9 +7662,12 @@ function pollGamepad(dt) {
       return;
     }
 
-    // LB / RB → quick panel switch (left ↔ center ↔ right cyclic)
-    if (justPressed(4)) { fiPadPanelSwitch(-1); fiCycleActiveCol(-1); }
-    if (justPressed(5)) { fiPadPanelSwitch(+1); fiCycleActiveCol(+1); }
+    // LB / RB → 영역 순환(ground ↔ inv ↔ equip). fiPadPanelSwitch 내부에서
+    // setPadFocus → scope→col 매핑으로 탭 하이라이트도 같이 갱신하므로 별도 호출 불필요.
+    // 이전엔 비순환 clamp 인 fiCycleActiveCol 까지 같이 불러서 col 이 덮어쓰이고
+    // 끝 영역에서 RB/LB 가 막히는 문제가 있었음.
+    if (justPressed(4)) fiPadPanelSwitch(-1);
+    if (justPressed(5)) fiPadPanelSwitch(+1);
 
     // D-pad: discrete step per press
     if (justPressed(12)) fiPadFocusMove('up');
@@ -7032,22 +7675,24 @@ function pollGamepad(dt) {
     if (justPressed(14)) fiPadFocusMove('left');
     if (justPressed(15)) fiPadFocusMove('right');
 
-    // Left stick: continuous nav with throttle (so a held stick steps every ~180ms)
-    const ilx = applyDeadzone(pad.axes[0] || 0);
-    const ily = applyDeadzone(pad.axes[1] || 0);
-    const stickActive = Math.abs(ilx) > 0.5 || Math.abs(ily) > 0.5;
+    // 슬롯 포커스 nav 스틱 — 옵션 ON 이면 우측(axes 2,3), OFF 면 좌측(axes 0,1).
+    const _navStickX = state.invMoveWhileOpen ? 2 : 0;
+    const _navStickY = state.invMoveWhileOpen ? 3 : 1;
+    const irx = applyDeadzone(pad.axes[_navStickX] || 0);
+    const iry = applyDeadzone(pad.axes[_navStickY] || 0);
+    const stickActive = Math.abs(irx) > 0.5 || Math.abs(iry) > 0.5;
     if (stickActive) {
       _stickNavTimer -= dt;
       if (_stickNavTimer <= 0) {
-        if (Math.abs(ilx) > Math.abs(ily)) {
-          fiPadFocusMove(ilx > 0 ? 'right' : 'left');
+        if (Math.abs(irx) > Math.abs(iry)) {
+          fiPadFocusMove(irx > 0 ? 'right' : 'left');
         } else {
-          fiPadFocusMove(ily > 0 ? 'down' : 'up');
+          fiPadFocusMove(iry > 0 ? 'down' : 'up');
         }
         _stickNavTimer = STICK_NAV_INTERVAL;
       }
     } else {
-      _stickNavTimer = 0;       // reset so first deflection steps immediately
+      _stickNavTimer = 0;
     }
 
     // Action buttons
@@ -7066,9 +7711,15 @@ function pollGamepad(dt) {
       const elapsed = (performance.now() - fiMod.padXHoldStart) / 1000;
       if (!fiMod.padXHoldFired && elapsed >= X_DROP_DURATION) {
         const focused = document.querySelector('#fullinv .fi-pad-focus');
-        if (focused && focused.dataset.scope === 'ground') {
+        const fscope = focused && focused.dataset.scope;
+        if (fscope === 'ground') {
           // ground 포커스 + X 홀드 → 주변 전체 가져가기
           pickupAll();
+          if (state.fullInvOpen) fiAfterChange();
+          fiMod.padXHoldFired = true;
+        } else if (fscope === 'cn') {
+          // 컨테이너 포커스 + X 홀드 → 컨테이너 전체 가져가기 (drop 아님 — 사용자 요청)
+          pickupAllFromContainer();
           if (state.fullInvOpen) fiAfterChange();
           fiMod.padXHoldFired = true;
         } else if (fiPadDropOnHoldComplete()) {
@@ -7076,13 +7727,16 @@ function pollGamepad(dt) {
         }
       }
     } else if (fiMod.padXHoldStart) {
-      // X 떼기 — hold drop 이 발동되지 않았다면 tap. ground 포커스면 pickup.
+      // X 떼기 — hold drop 이 발동되지 않았다면 tap. ground/cn 포커스면 단일 pickup.
       const elapsed = (performance.now() - fiMod.padXHoldStart) / 1000;
       const wasTap = !fiMod.padXHoldFired && elapsed < X_DROP_DURATION;
       if (wasTap) {
         const focused = document.querySelector('#fullinv .fi-pad-focus');
-        if (focused && focused.dataset.scope === 'ground') {
-          quickMove('ground', focused.dataset.id);
+        const fscope = focused && focused.dataset.scope;
+        if (fscope === 'ground' || fscope === 'cn') {
+          const moved = quickMove(fscope, focused.dataset.id);
+          // cn 의 quickMove 는 내부적으로 렌더 트리거를 안 함 — 명시적으로 재렌더.
+          if (moved && state.fullInvOpen) fiAfterChange();
         }
       }
       fiMod.padXHoldStart = 0;
@@ -7098,12 +7752,7 @@ function pollGamepad(dt) {
   // ============================================================
   // ===== World mode — original game-play inputs ===============
   // ===== Sticks =====
-  // Left stick: movement. axes[0]=X (right=+), axes[1]=Y (down=+).
-  // Standard FPS feel: stick up = move forward.
-  const lx = applyDeadzone(pad.axes[0] || 0);
-  const ly = applyDeadzone(pad.axes[1] || 0);
-  padWish.x = lx;
-  padWish.z = ly;
+  // 좌측 스틱(padWish) 갱신은 함수 상단에서 이미 처리 (인벤 열려도 이동 가능하도록).
 
   // Right stick: 평소엔 시점 회전, 휠이 열려 있을 땐 휠 커서 위치 입력으로 사용.
   if (!state.fullInvOpen) {
@@ -7151,9 +7800,9 @@ function pollGamepad(dt) {
   // X (button 2): 컨테이너 가까이 있으면 상호작용 시작(hold to complete),
   //               없으면 픽업 핫키 (tap=single, hold=all). 휠 모드에서도 픽업으로 동작.
   if (justPressed(2) && !state.fullInvOpen) {
-    const t = nearestInteractable();
-    if (t && !LW.open) {
-      startInteraction(t);
+    const front = LW.open ? null : frontmostInteractable();
+    if (front && front.kind === 'container') {
+      startInteraction(front.target);
     } else {
       padHold.xHoldStart = performance.now();
       padHold.xHoldFired = false;
@@ -7170,12 +7819,8 @@ function pollGamepad(dt) {
       padHold.xHoldFired = false;
     }
   }
-  if (padHold.xHoldStart && !padHold.xHoldFired && !state.fullInvOpen) {
-    if ((performance.now() - padHold.xHoldStart) / 1000 >= 0.32) {
-      pickupAll();
-      padHold.xHoldFired = true;
-    }
-  }
+  // 사용자 요청: 월드 상태 X hold = 주변 전체 픽업 기능 제거. (이전엔 0.32s 초과 시 pickupAll)
+  // tap(release) → pickupSingle 은 위 분기에서 그대로 처리.
 
   // Y (button 3):
   //   휠 오픈 중 → QL 리스트 포커스 위로 한 칸 이동.
@@ -7366,6 +8011,11 @@ document.getElementById('showUpgrade').addEventListener('change', e => {
   state.showUpgrade = e.target.checked;
   renderQuickLoot();
 });
+document.getElementById('invMoveWhileOpen').addEventListener('change', e => {
+  state.invMoveWhileOpen = e.target.checked;
+  // 옵션 끄는 순간 잔존 입력 클리어 — stuck 키 방지.
+  if (!state.invMoveWhileOpen) _clearAllInputState();
+});
 document.getElementById('autoRepick').addEventListener('change', e => {
   state.autoRepick = e.target.checked;
 });
@@ -7391,16 +8041,10 @@ function frame(now) {
   last = now;
   const t = now / 1000;
 
-  // While F is held: when threshold reached, do all-pickup
-  if (_fHoldStart && (now - _fHoldStart) / 1000 >= 0.32 && !_fHoldFired && !state.fullInvOpen) {
-    pickupAll();
-    _fHoldFired = true;
-  }
-  // E-hold = pickup all (단, 컨테이너 상호작용이 진행 중이면 적용되지 않음)
-  if (_eHoldStart && !interaction && (now - _eHoldStart) / 1000 >= 0.32 && !_eHoldFired && !state.fullInvOpen) {
-    pickupAll();
-    _eHoldFired = true;
-  }
+  // 사용자 요청: 월드(인벤 닫힌) 상태에서 F/E hold = 주변 전체 픽업 기능 제거.
+  // hold 트리거 자체를 발화 안 함 (예전엔 여기서 pickupAll() + _eHoldFired=true).
+  // _eHoldStart / _fHoldStart 추적은 그대로 → release 시 키업 핸들러의 tap → pickupSingle 정상 작동.
+  // 인벤 열린 상태의 E hold = pickupAll 은 별도 경로(_fiKbEHoldTimer)라 영향 없음.
   // 인벤 열린 상태 E hold 진행 중이면 진행률 ring 매 프레임 갱신.
   if (fiMod.kbEHoldStart > 0) fiUpdateModHint();
 
@@ -7426,8 +8070,30 @@ function frame(now) {
   refreshInteractPrompt();
   tickInteraction(dt);
 
+  // 인벤 열린 상태에서 캐릭터 이동 시 주변 영역 자동 갱신.
+  // (1) activeContainer 가 너무 멀어지면 해제 → 컨테이너 sub-section 사라짐.
+  // (2) nearbyGroundItems uid 변화 감지 → 바닥 sub-section 갱신.
+  if (state.fullInvOpen) {
+    let needRender = false;
+    if (activeContainer) {
+      const dx = activeContainer.mesh.position.x - player.pos.x;
+      const dz = activeContainer.mesh.position.z - player.pos.z;
+      // 바닥 아이템과 동일한 반경(state.qlRadius) 적용 — 그 거리 벗어나면 컨테이너 사라짐.
+      const r = state.qlRadius;
+      if (dx*dx + dz*dz > r*r) {
+        activeContainer = null;
+        needRender = true;
+      }
+    }
+    const sig = _computeGroundSig();
+    if (sig !== _fiGroundSig) {
+      _fiGroundSig = sig;
+      needRender = true;
+    }
+    if (needRender) renderFullInventory();
+  }
+
   renderer.render(scene, camera);
-  // 카메라 갱신 후 화면-공간 인디케이터를 그려야 정확한 투영이 됨.
   renderGroundDots();
   requestAnimationFrame(frame);
 }
