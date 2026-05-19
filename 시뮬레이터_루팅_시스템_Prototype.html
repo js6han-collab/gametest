@@ -3164,7 +3164,7 @@
             <span class="fi-section-label">배낭</span>
             <span class="fi-section-counter"><span id="fiInvUsed">0</span>/<span id="fiInvTotal">15</span></span>
             <span class="fi-bp-weight">
-              <img src="figma-assets/inv-3845-24418/icon-weight.svg" alt=""/>
+              <img src="figma-assets/hud-icons/weight-fill.svg" alt=""/>
               <span><span id="fiBpWeight">0.0</span><span class="max">/<span id="fiBpWeightMax">50.0</span>kg</span></span>
             </span>
           </div>
@@ -6064,7 +6064,7 @@ function fiSetDetail(item, anchorEl, mode) {
       <span>${a.label}</span>
     </button>`).join('');
 
-  const toggleLabel = (mode === 'info') ? '액션' : '뒤로';
+  const toggleLabel = (mode === 'info') ? '메뉴' : '뒤로';
 
   elFIDetail.innerHTML = `
     <div class="ftt-card">
@@ -7697,8 +7697,9 @@ function fiPadFocusMove(direction) {
     if (first) setPadFocus(first);
     return;
   }
-  // Picker 모드에선 명시 override 룰 (배낭→무기 등) 건너뜀 — 비-eligible 로 jump 방지.
-  if (!_fiPickerMode) {
+  // Picker / Move 모드에선 명시 override 룰 (배낭→무기 등) 건너뜀 — 비-eligible 슬롯으로
+  // 점프해 호환 안 되는 다른 총기의 부착물 슬롯이 포커싱되던 버그 방지.
+  if (!_fiPickerMode && !_fiMoveMode) {
     const overrideEl = _fiPadOverrideMove(current, direction);
     if (overrideEl) { setPadFocus(overrideEl); return; }
   }
