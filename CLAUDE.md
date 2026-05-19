@@ -34,7 +34,9 @@ Treat the `--fig-*` token block (lines ~10–170) as the authoritative design-to
 
 JS references inventory elements by `id` (`fiInvGrid`, `fiWeaponPrimary`, `fiEquipGrid` …), so DOM reordering inside `.fig-canvas` is safe.
 
-## Figma assets — [figma-assets/](figma-assets/)
+## Figma assets — [public/figma-assets/](public/figma-assets/)
+
+Lives under Vite's `public/` so the build auto-copies the whole tree to `dist/figma-assets/` — no manual `cp` needed, and `netlify deploy --prod --dir=dist` works without `--no-build`. HTML references stay as relative `figma-assets/...` (dev server serves `public/` at root).
 
 PUBG-style icons from [pubg.wiki.gg](https://pubg.wiki.gg) downloaded into `pubg-icons/`:
 - Weapons: rifle, smg, sniper, shotgun, pistol

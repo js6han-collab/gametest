@@ -108,6 +108,7 @@ npm run dev
 |---|---|
 | **LAN 시연** (가장 빠름) | `npm run dev -- --host` → Network 주소를 같은 망의 동료에게 |
 | **정적 호스팅 빌드** | `npm run build` → `dist/` 를 Netlify/Vercel/GitHub Pages/사내 호스트에 업로드 |
+| **Netlify CLI 배포** | `netlify deploy --prod --dir=dist` (figma-assets 포함, public/ 가 자동으로 dist/ 에 복사됨) |
 | **빌드 미리보기** | `npm run preview -- --host` |
 | **HTML 파일 직접 전달** | `시뮬레이터_루팅_시스템_Prototype.html` 단일 파일만 전달 — 브라우저에서 바로 열림 (CDN 접속 가능 환경 한정) |
 
@@ -116,7 +117,7 @@ npm run dev
 ```
 시뮬레이터_루팅_시스템_Prototype.html   # 본체 (CSS/JS/HTML 모두 인라인, Three.js r128 CDN)
 index.html                              # localhost:5173 → 본체로 리다이렉트
-figma-assets/                           # 아이콘·무기 렌더 (cat-icons / pubg-weapons / tooltip-icons / pubg-icons)
+public/figma-assets/                    # 아이콘·무기 렌더 (cat-icons / pubg-weapons / tooltip-icons / pubg-icons) — vite 가 빌드 시 dist/ 루트로 자동 복사
 vite.config.js                          # build 시 두 HTML 모두 dist 에 포함
 package.json                            # vite devDependency 하나
 ```
