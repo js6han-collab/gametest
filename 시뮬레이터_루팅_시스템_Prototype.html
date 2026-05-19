@@ -484,72 +484,74 @@
      Compact backpack grid that pops up just below the crosshair after a pickup,
      stays for ~2 seconds, then fades out. Lets the player check slot status
      at a glance without opening the full inventory. */
-  /* Figma 4515:1209 패턴 — 크로스헤어 우측 상단에 떠 있는 4열 슬롯 미리보기.
-     상단: 좌측에 점유/전체 카운트, 우측에 무게 % pill (검은 캡슐). */
+  /* Figma 4030:5021 인게임 참고 — 크로스헤어 우측 살짝 아래쪽에 떠 있는 4열 슬롯 미리보기.
+     컨테이너 배경/보더 없이 셀과 헤더만 화면에 직접 floating. 상단 좌측 카운트,
+     상단 우측 무게 % 검은 캡슐 pill. */
   #quickInvPreview {
     position: absolute;
-    /* 화면 정중앙(크로스헤어)의 우측 상단 — 시야 가리지 않게 살짝 위로. */
-    left: calc(50% + 110px);
-    top: 16%;
-    width: 220px;
-    background: rgba(0,0,0,0.72);
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 14px 14px 16px;
+    /* 화면 정중앙(크로스헤어) 의 살짝 우측 — Figma 스크린샷 기준. */
+    left: calc(50% + 70px);
+    top: 46%;
+    width: 132px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.18s ease;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 4px;
     box-sizing: border-box;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.55));
   }
   #quickInvPreview.visible { opacity: 1; }
   #quickInvPreview .qip-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
+    padding: 0 1px 2px;
   }
   #quickInvPreview .qip-count {
-    font-size: 18px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.95);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    letter-spacing: 0.02em;
   }
   #quickInvPreview .qip-weight {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    background: #000;
-    border: 1px solid rgba(255,255,255,0.10);
+    gap: 3px;
+    padding: 3px 7px;
+    background: rgba(0,0,0,0.78);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     color: #fff;
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }
   #quickInvPreview .qip-weight-icon {
-    width: 14px; height: 14px;
+    width: 11px; height: 11px;
     background: url('figma-assets/hud-icons/weight-fill.svg') no-repeat center / contain;
     opacity: 0.92;
   }
   #quickInvPreview .qip-weight.warn   { border-color: rgba(214,168,74,0.6); }
   #quickInvPreview .qip-weight.over   { border-color: var(--red);
                                         color: var(--red); }
-  /* 4 column grid — 인벤토리 본체와 동일 배열. cell 크기/간격은 화면 비례. */
+  /* 4 column grid — 인벤토리 본체와 동일 배열. cell 28px 정도. */
   #quickInvPreview .qip-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    gap: 4px;
   }
   #quickInvPreview .qip-cell {
     aspect-ratio: 1 / 1;
-    background: rgba(217,217,217,0.10);
-    border: 2px solid rgba(255,255,255,0.50);
-    border-radius: 5px;
+    background: rgba(0,0,0,0.32);
+    border: 1.5px solid rgba(255,255,255,0.55);
+    border-radius: 3px;
     box-sizing: border-box;
   }
   #quickInvPreview .qip-cell.filled {
