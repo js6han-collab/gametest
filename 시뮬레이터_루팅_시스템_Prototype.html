@@ -761,8 +761,8 @@
     height: 80px;
     cursor: pointer;
     position: relative;
-    display: flex; flex-direction: column; align-items: center;
-    gap: 6px;
+    /* flex column 으로 두면 text 가 상단에 붙음 — center 로 변경해 LT/RT 트리거 (48px) 와 baseline 일치. */
+    display: inline-flex; align-items: center; justify-content: center;
     min-width: 200px;
   }
   .fi-game-tab.active { color: var(--fig-tab-text-active); }
@@ -2067,99 +2067,108 @@
     background: rgba(156,217,227,0.15) !important;
   }
 
-  .fi-mod-hint {
+  /* ===== 인벤 하단 통합 가이드 (검은 영역) =====
+     mod-hint + actionbar 를 한 줄로 묶은 단일 영역. tap key 는 HUD .gd-prompt .key 와
+     동일한 흰 원 + 검은 글자, hold key 는 흰 반투명 ring + 상단 ▼ 화살표 + 진행률.
+     스틱/마우스 글리프는 Figma SVG (public/figma-assets) 를 background-image 로 사용. */
+  .fi-bottom-guide {
     position: absolute;
-    left: 50%;
-    bottom: 88px;
-    transform: translateX(-50%);
-    display: none;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 14px;
-    background: rgba(80,160,200,0.16);
-    border: 1px solid rgba(80,160,200,0.45);
-    color: rgba(100,200,230,0.90);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    z-index: 60;
-    pointer-events: none;
-  }
-  .fi-mod-hint.active { display: flex; }
-  .fi-mod-hint .key {
-    background: #ffffff; color: #000000;
-    padding: 0 5px; height: 16px; line-height: 16px;
-    font-size: 10px; font-weight: 900;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  }
-  .fi-mod-hint.danger {
-    background: rgba(200,67,47,0.20);
-    border-color: var(--red);
-    color: var(--red);
-  }
-  .fi-mod-hint.danger .key { background: rgba(200,67,47,0.32); border-color: var(--red); color: var(--red); }
-  .fi-mod-hint svg.x-ring {
-    width: 22px; height: 22px;
-  }
-  .fi-mod-hint svg.x-ring .arc {
-    fill: none; stroke: var(--red); stroke-width: 2.4;
-    stroke-dasharray: 56; stroke-dashoffset: 56;
-    transform: rotate(-90deg); transform-origin: center;
-    transition: stroke-dashoffset 0.04s linear;
-  }
-  .fi-mod-hint svg.x-ring .bg {
-    fill: none; stroke: rgba(255,255,255,0.18); stroke-width: 2.4;
-  }
-
-  /* 인벤 하단 동적 액션바 — 현재 포커스/모드에서 가능한 패드 인터랙션 목록.
-     fi-mod-hint(88px) 와 안 겹치도록 더 아래(20px)에 배치, 한 줄 고정. */
-  .fi-pad-actionbar {
-    position: absolute;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
+    left: 0; right: 0;
+    bottom: 0;
     display: none;
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
-    gap: 0 12px;
-    max-width: 94%;
-    padding: 6px 14px;
-    background: rgba(15,20,28,0.78);
-    border: 1px solid rgba(180,200,220,0.20);
-    color: rgba(220,230,240,0.92);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    gap: 28px;
+    padding: 18px 32px;
+    min-height: 64px;
+    background: rgba(0,0,0,0.78);
+    border-top: 1px solid rgba(180,200,220,0.16);
+    z-index: 60;
+    pointer-events: none;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  .fi-bottom-guide.active { display: flex; }
+  .fi-bottom-guide .bg-chip {
+    display: inline-flex; align-items: center;
+    gap: 10px;
     white-space: nowrap;
-    z-index: 59;
+  }
+  .fi-bottom-guide .bg-label {
+    color: rgba(225,232,240,0.92);
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  /* ----- 키 글리프 — HUD .gd-prompt .key 패턴 그대로 ----- */
+  .fi-bottom-guide .bg-key {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    background: #ffffff;
+    color: #000;
+    font-size: 12px; font-weight: 900;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    flex: 0 0 auto;
+  }
+  .fi-bottom-guide .bg-key svg.key-ring,
+  .fi-bottom-guide .bg-key .hold-arrow { display: none; }
+  .fi-bottom-guide .bg-key.hold svg.key-ring,
+  .fi-bottom-guide .bg-key.hold .hold-arrow { display: block; }
+  .fi-bottom-guide .bg-key svg.key-ring {
+    position: absolute;
+    left: -5px; top: -5px;
+    width: calc(100% + 10px); height: calc(100% + 10px);
     pointer-events: none;
   }
-  .fi-pad-actionbar.active { display: flex; }
-  .fi-pad-actionbar .pa-pair {
-    display: inline-flex; align-items: center; gap: 6px;
+  .fi-bottom-guide .bg-key svg.key-ring .ring-bg {
+    fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 2.2;
   }
-  .fi-pad-actionbar .pa-btn {
+  .fi-bottom-guide .bg-key svg.key-ring .ring-fg {
+    fill: none; stroke: #ffffff; stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-dasharray: 119.38;   /* 2π·19 (r=19 in 44 viewBox 약간 안쪽) */
+    stroke-dashoffset: calc(119.38 * (1 - var(--p, 0)));
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+  }
+  .fi-bottom-guide .bg-key .hold-arrow {
+    position: absolute;
+    left: 50%; top: -11px;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid rgba(255,255,255,0.95);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.65));
+    z-index: 2;
+  }
+  .fi-bottom-guide .bg-key .key-letter {
+    position: relative; z-index: 1; line-height: 1;
+  }
+  /* ----- 스틱 클릭 글리프 — Figma node 4514:1353 ----- */
+  .fi-bottom-guide .bg-stick {
     display: inline-block;
-    background: #ffffff; color: #000000;
-    padding: 0 7px; height: 17px; line-height: 17px;
-    font-size: 10px; font-weight: 900; letter-spacing: 0.04em;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.28);
-    border-radius: 2px;
-    white-space: nowrap;
+    width: 30px; height: 26px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    flex: 0 0 auto;
   }
-  .fi-pad-actionbar .pa-btn.hold {
-    background: transparent; color: #ffffff;
-    border: 1.5px solid #ffffff;
-    padding: 0 6px; height: 16px; line-height: 14px;
+  .fi-bottom-guide .bg-stick.l3 { background-image: url('figma-assets/pad-glyphs/stick-l3.svg'); }
+  .fi-bottom-guide .bg-stick.r3 { background-image: url('figma-assets/pad-glyphs/stick-r3.svg'); }
+  /* ----- 마우스 글리프 — Figma node 4476:3266 ----- */
+  .fi-bottom-guide .bg-mouse {
+    display: inline-block;
+    width: 28px; height: 28px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    flex: 0 0 auto;
   }
-  .fi-pad-actionbar .pa-lbl {
-    color: rgba(220,230,240,0.92);
-  }
-  .fi-pad-actionbar .pa-sep {
-    display: inline-block; width: 1px; height: 14px;
-    background: rgba(255,255,255,0.18);
-  }
+  .fi-bottom-guide .bg-mouse.lmb { background-image: url('figma-assets/mouse-glyphs/mouse-lb.svg'); }
+  .fi-bottom-guide .bg-mouse.rmb { background-image: url('figma-assets/mouse-glyphs/mouse-rb.svg'); }
+  .fi-bottom-guide .bg-mouse.scroll { background-image: url('figma-assets/mouse-glyphs/mouse-scroll.svg'); }
 
   #fi-ctx-menu {
     position: fixed;
@@ -3222,11 +3231,10 @@
       <div class="fi-grid size-cn" id="fiContainerGrid"></div>
     </div>
 
-    <!-- Detail tooltip / mod hint — 캔버스 밖, 화면 전역 fixed -->
+    <!-- Detail tooltip — 캔버스 밖, 화면 전역 fixed -->
     <div class="fi-detail" id="fiDetail"></div>
-    <div class="fi-mod-hint" id="fiModHint"></div>
-    <!-- 패드 모드 한정: 현재 포커스/모드에서 가능한 인터랙션 목록 -->
-    <div class="fi-pad-actionbar" id="fiPadActionBar"></div>
+    <!-- 인벤 하단 통합 가이드 — 현재 포커스/모드에서 가능한 모든 인터랙션 목록 (검은 영역) -->
+    <div class="fi-bottom-guide" id="fiBottomGuide"></div>
   </div>
 </div>
 
@@ -4408,8 +4416,8 @@ function setInputMode(mode) {
   // Always exactly one mode class on <body>. CSS keys off these.
   document.body.classList.remove('kb-mode', 'pad-mode');
   document.body.classList.add(mode + '-mode');
-  // 인벤 액션바는 패드 모드 한정 — 모드 전환 즉시 표시/숨김 동기화.
-  if (typeof fiUpdatePadActionBar === 'function') fiUpdatePadActionBar();
+  // 인벤 하단 가이드는 input mode 따라 chip 셋이 달라짐 — 모드 전환 시 즉시 갱신.
+  if (typeof fiUpdateModHint === 'function') fiUpdateModHint();
 }
 // Body initial mode is set in HTML (<body class="kb-mode">) to prevent flicker
 // before this script runs. setInputMode() swaps it as input source changes.
@@ -5503,150 +5511,127 @@ function fiSelectionList() {
 // =====================================================
 // Tracks live state of Shift / Ctrl during inventory interactions.
 const fiMod = { shift: false, ctrl: false, padXHoldStart: 0, padXHoldFired: false, kbEHoldStart: 0 };
-const elFIModHint = document.getElementById('fiModHint');
+const elFIBottomGuide = document.getElementById('fiBottomGuide');
 
-const elFIPadActionBar = document.getElementById('fiPadActionBar');
+// 단일 chip 렌더. spec: { glyph, label, hold?, progress? }
+//   glyph 형식:
+//     'pad:A' | 'pad:X' | 'pad:Y' | 'pad:B'  → 패드 ABXY (흰 원 + 검은 글자)
+//     'kb:E'  | 'kb:Esc' | 'kb:Tab' | 'kb:Shift' | 'kb:Ctrl' | 'kb:Enter'  → KB 키
+//     'stick:l' | 'stick:r'                   → L3/R3 (Figma 스틱 SVG)
+//     'mouse:lmb' | 'mouse:rmb' | 'mouse:scroll'  → 마우스 클릭 (Figma SVG)
+function _bgChip(spec) {
+  let glyphHtml = '';
+  if (spec.glyph.startsWith('pad:') || spec.glyph.startsWith('kb:')) {
+    const letter = spec.glyph.split(':')[1];
+    const holdCls = spec.hold ? ' hold' : '';
+    const p = (spec.progress || 0).toFixed(3);
+    glyphHtml =
+      `<span class="bg-key${holdCls}" style="--p:${p}">` +
+        `<svg class="key-ring" viewBox="0 0 44 44">` +
+          `<circle class="ring-bg" cx="22" cy="22" r="19"/>` +
+          `<circle class="ring-fg" cx="22" cy="22" r="19" transform="rotate(-90 22 22)"/>` +
+        `</svg>` +
+        `<span class="hold-arrow"></span>` +
+        `<span class="key-letter">${letter}</span>` +
+      `</span>`;
+  } else if (spec.glyph.startsWith('stick:')) {
+    const side = spec.glyph.split(':')[1];   // 'l' | 'r'
+    glyphHtml = `<span class="bg-stick ${side}3"></span>`;
+  } else if (spec.glyph.startsWith('mouse:')) {
+    const btn = spec.glyph.split(':')[1];   // 'lmb' | 'rmb' | 'scroll'
+    glyphHtml = `<span class="bg-mouse ${btn}"></span>`;
+  }
+  return `<span class="bg-chip">${glyphHtml}<span class="bg-label">${spec.label}</span></span>`;
+}
 
-// 현재 상태(포커스 슬롯 + 모드) 기반으로 패드 인터랙션 목록을 하단에 표시.
-// fiUpdateModHint 후미에서 매번 호출됨.
-function fiUpdatePadActionBar() {
-  if (!elFIPadActionBar) return;
-  if (!state.fullInvOpen || _lastInputMode !== 'pad') {
-    elFIPadActionBar.classList.remove('active');
+// 인벤 하단 통합 가이드 — 현재 모드/포커스 기반 인터랙션 chip 리스트.
+// 모드 우선순위: move > picker > tooltip-action > 일반 nav.
+function fiUpdateModHint() {
+  const el = elFIBottomGuide;
+  if (!el) return;
+  if (!state.fullInvOpen) {
+    el.classList.remove('active');
+    el.innerHTML = '';
     return;
   }
+  const isPad = _lastInputMode === 'pad';
   const fEl = document.querySelector('#fullinv .fi-pad-focus');
   const fScope = fEl && fEl.dataset.scope;
   const item = fEl ? fiResolveItem(fScope, fEl.dataset.id) : null;
-  const pairs = [];   // { btn, label, hold? }
+  const chips = [];
+
+  // hold 진행률 — KB E hold (인벤 열림) / Pad X hold.
+  const padXHoldP = (fiMod.padXHoldStart > 0)
+    ? Math.min(1, (performance.now() - fiMod.padXHoldStart) / 1000 / X_DROP_DURATION)
+    : 0;
+  const kbEHoldP = (fiMod.kbEHoldStart > 0)
+    ? Math.min(1, (performance.now() - fiMod.kbEHoldStart) / 1000 / X_DROP_DURATION)
+    : 0;
 
   if (_fiMoveMode) {
-    pairs.push({ btn: 'A',    label: '확정 / 교체' });
-    pairs.push({ btn: 'B',    label: '취소' });
-    pairs.push({ btn: 'R3',   label: '핑' });
-  } else if (_fiPickerMode) {
-    pairs.push({ btn: 'A',    label: '장착' });
-    pairs.push({ btn: 'B',    label: '취소' });
-  } else if (_fiTooltipMode === 'action') {
-    pairs.push({ btn: 'A',    label: '실행' });
-    pairs.push({ btn: 'B',    label: '정보 모드' });
-  } else {
-    // 일반 nav 모드 — 영역전환/닫기/자동장착(ground/cn 의 A) 은 제외.
-    if (fScope === 'inv' && item) {
-      pairs.push({ btn: 'A', label: '이동 모드' });
-      pairs.push({ btn: 'X', label: '안전포켓으로' });
-      pairs.push({ btn: 'X', label: '버리기', hold: true });
-    } else if (fScope === 'safe' && item) {
-      pairs.push({ btn: 'A', label: '이동 모드' });
-      pairs.push({ btn: 'X', label: '배낭으로' });
-      pairs.push({ btn: 'X', label: '버리기', hold: true });
-    } else if ((fScope === 'equip' || fScope === 'attach') && item) {
-      pairs.push({ btn: 'A', label: '이동 모드' });
-      pairs.push({ btn: 'X', label: '배낭으로' });
-      pairs.push({ btn: 'X', label: '버리기', hold: true });
-    } else if ((fScope === 'ground' || fScope === 'cn') && item) {
-      pairs.push({ btn: 'X', label: '픽업' });
-      pairs.push({ btn: 'X', label: '모두 가져가기', hold: true });
-    }
-    if (item) {
-      pairs.push({ btn: 'Y',  label: '메뉴' });
-      pairs.push({ btn: 'R3', label: '핑' });
-    }
-    pairs.push({ btn: 'L3', label: state.padTooltipAuto ? '툴팁 OFF' : '툴팁 ON' });
-  }
-
-  let html = '';
-  pairs.forEach((p, i) => {
-    if (i > 0) html += `<span class="pa-sep"></span>`;
-    const btnCls = p.hold ? 'pa-btn hold' : 'pa-btn';
-    const label = p.hold ? `${p.label} <span style="opacity:0.65;font-weight:500">(꾹)</span>` : p.label;
-    html += `<span class="pa-pair"><span class="${btnCls}">${p.btn}</span><span class="pa-lbl">${label}</span></span>`;
-  });
-  elFIPadActionBar.innerHTML = html;
-  elFIPadActionBar.classList.add('active');
-}
-
-function _fiUpdateModHintInner() {
-  if (!state.fullInvOpen) {
-    elFIModHint.classList.remove('active');
-    elFIModHint.classList.remove('danger');
-    return;
-  }
-  // Move 모드 — 슬롯 선택 안내. 다른 hint 보다 우선.
-  if (_fiMoveMode) {
-    elFIModHint.classList.add('active');
-    elFIModHint.classList.remove('danger');
-    elFIModHint.innerHTML =
-      `<span>이동할 슬롯 선택</span>` +
-      `<span class="key">A</span><span>확정</span>` +
-      `<span class="key">B</span><span>취소</span>` +
-      `<span class="key">R3</span><span>핑</span>`;
-    return;
-  }
-  // KB E hold (인벤 열린 상태 PC) — 항상 "모두 가져가기" (ground 한정 X)
-  if (fiMod.kbEHoldStart > 0) {
-    const elapsed = (performance.now() - fiMod.kbEHoldStart) / 1000;
-    const progress = Math.min(1, elapsed / X_DROP_DURATION);
-    const offset = 56 * (1 - progress);
-    elFIModHint.classList.add('active');
-    elFIModHint.classList.remove('danger');
-    elFIModHint.innerHTML = `
-      <svg class="x-ring" viewBox="0 0 22 22">
-        <circle class="bg" cx="11" cy="11" r="9"/>
-        <circle class="arc" cx="11" cy="11" r="9" style="stroke-dashoffset:${offset}; stroke: rgba(110, 200, 130, 0.95)"/>
-      </svg>
-      <span class="key">E</span><span>모두 가져가기</span>`;
-    return;
-  }
-  // Pad X hold takes precedence (with progress)
-  if (fiMod.padXHoldStart > 0) {
-    const elapsed = (performance.now() - fiMod.padXHoldStart) / 1000;
-    const progress = Math.min(1, elapsed / X_DROP_DURATION);
-    const offset = 56 * (1 - progress);
-    const focused = document.querySelector('#fullinv .fi-pad-focus');
-    const fscope = focused && focused.dataset.scope;
-    // ground 또는 cn 포커스 = "모두 가져가기" (안전). 그 외 inv/equip/attach = "버리기" (danger).
-    const isPickupAll = fscope === 'ground' || fscope === 'cn';
-    elFIModHint.classList.add('active');
-    if (isPickupAll) {
-      elFIModHint.classList.remove('danger');
-      elFIModHint.innerHTML = `
-        <svg class="x-ring" viewBox="0 0 22 22">
-          <circle class="bg" cx="11" cy="11" r="9"/>
-          <circle class="arc" cx="11" cy="11" r="9" style="stroke-dashoffset:${offset}; stroke: rgba(110, 200, 130, 0.95)"/>
-        </svg>
-        <span class="key">X</span><span>모두 가져가기</span>`;
+    if (isPad) {
+      chips.push({ glyph: 'pad:A',  label: '확정 / 교체' });
+      chips.push({ glyph: 'pad:B',  label: '취소' });
+      chips.push({ glyph: 'stick:r', label: '핑' });
     } else {
-      elFIModHint.classList.add('danger');
-      elFIModHint.innerHTML = `
-        <svg class="x-ring" viewBox="0 0 22 22">
-          <circle class="bg" cx="11" cy="11" r="9"/>
-          <circle class="arc" cx="11" cy="11" r="9" style="stroke-dashoffset:${offset}"/>
-        </svg>
-        <span class="key">X</span><span>버리기</span>`;
+      chips.push({ glyph: 'mouse:lmb', label: '확정 / 교체' });
+      chips.push({ glyph: 'kb:Esc',    label: '취소' });
     }
-    return;
+  } else if (_fiPickerMode) {
+    if (isPad) {
+      chips.push({ glyph: 'pad:A', label: '장착' });
+      chips.push({ glyph: 'pad:B', label: '취소' });
+    } else {
+      chips.push({ glyph: 'mouse:lmb', label: '장착' });
+      chips.push({ glyph: 'kb:Esc',    label: '취소' });
+    }
+  } else if (_fiTooltipMode === 'action') {
+    if (isPad) {
+      chips.push({ glyph: 'pad:A', label: '실행' });
+      chips.push({ glyph: 'pad:B', label: '정보 모드' });
+    } else {
+      chips.push({ glyph: 'mouse:lmb', label: '실행' });
+      chips.push({ glyph: 'mouse:rmb', label: '정보 모드' });
+    }
+  } else {
+    // 일반 nav 모드
+    if (isPad) {
+      if (fScope === 'inv' && item) {
+        chips.push({ glyph: 'pad:A', label: '이동 모드' });
+        chips.push({ glyph: 'pad:X', label: '안전포켓으로' });
+        chips.push({ glyph: 'pad:X', label: '버리기', hold: true, progress: padXHoldP });
+      } else if (fScope === 'safe' && item) {
+        chips.push({ glyph: 'pad:A', label: '이동 모드' });
+        chips.push({ glyph: 'pad:X', label: '배낭으로' });
+        chips.push({ glyph: 'pad:X', label: '버리기', hold: true, progress: padXHoldP });
+      } else if ((fScope === 'equip' || fScope === 'attach') && item) {
+        chips.push({ glyph: 'pad:A', label: '이동 모드' });
+        chips.push({ glyph: 'pad:X', label: '배낭으로' });
+        chips.push({ glyph: 'pad:X', label: '버리기', hold: true, progress: padXHoldP });
+      } else if ((fScope === 'ground' || fScope === 'cn') && item) {
+        chips.push({ glyph: 'pad:X', label: '픽업' });
+        chips.push({ glyph: 'pad:X', label: '모두 가져가기', hold: true, progress: padXHoldP });
+      }
+      if (item) {
+        chips.push({ glyph: 'pad:Y',   label: '메뉴' });
+        chips.push({ glyph: 'stick:r', label: '핑' });
+      }
+      chips.push({ glyph: 'stick:l', label: state.padTooltipAuto ? '툴팁 OFF' : '툴팁 ON' });
+    } else {
+      // KB+M 모드 — 자명한 항목(LMB 단일선택, RMB 메뉴, E hold 모두 가져가기) + Shift/Ctrl 수정자.
+      chips.push({ glyph: 'mouse:lmb', label: '선택' });
+      chips.push({ glyph: 'mouse:rmb', label: '메뉴' });
+      chips.push({ glyph: 'kb:E', label: '모두 가져가기', hold: true, progress: kbEHoldP });
+      if (fiSelected.size > 0) {
+        chips.push({ glyph: 'kb:Ctrl', label: `${fiSelected.size}개 선택됨` });
+      } else if (fiMod.shift) {
+        chips.push({ glyph: 'kb:Shift', label: '가방 이동' });
+      }
+    }
   }
-  // CTRL 다중선택 안내는 하단 가이드로 이동됨. 떠다니는 hint 에는 "현재 N개 선택됨" 카운트만 표시.
-  if (fiSelected.size > 0) {
-    elFIModHint.classList.remove('danger');
-    elFIModHint.classList.add('active');
-    elFIModHint.innerHTML = `<span>${fiSelected.size}개 선택됨</span>`;
-    return;
-  }
-  if (fiMod.shift) {
-    elFIModHint.classList.remove('danger');
-    elFIModHint.classList.add('active');
-    elFIModHint.innerHTML = `<span class="key">Shift</span><span>가방 이동</span>`;
-    return;
-  }
-  elFIModHint.classList.remove('active', 'danger');
-}
 
-// 외부 호출은 fiUpdateModHint() — 모드 hint + 액션바 둘 다 갱신.
-function fiUpdateModHint() {
-  try { _fiUpdateModHintInner(); }
-  finally { fiUpdatePadActionBar(); }
+  el.innerHTML = chips.map(_bgChip).join('');
+  el.classList.add('active');
 }
 
 // =====================================================
