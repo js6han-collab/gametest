@@ -10,3 +10,6 @@ dist/
 
 # Figma MCP screenshot cache — dev-time only, not referenced from the prototype.
 .figma-cache/
+
+# Local Netlify folder
+.netlify
