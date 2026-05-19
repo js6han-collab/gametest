@@ -1379,17 +1379,9 @@
   body.fi-picker-mode .weapon-attach:not(.picker-eligible)::before {
     display: none !important;
   }
-  /* 패드 move 모드 — eligible 슬롯 녹색 점멸, source 슬롯 진한 노란 윤곽,
-     non-eligible 슬롯은 pointer-events 차단 + 살짝 딤. */
-  body.fi-move-mode .fi-cell.move-eligible,
-  body.fi-move-mode .fi-weapon-slot.move-eligible,
-  body.fi-move-mode .weapon-attach.move-eligible {
-    animation: fi-move-pulse 1.0s ease-in-out infinite;
-  }
-  @keyframes fi-move-pulse {
-    0%, 100% { box-shadow: inset 0 0 0 9999px rgba(110, 220, 140, 0.08); }
-    50%      { box-shadow: inset 0 0 0 9999px rgba(110, 220, 140, 0.32); }
-  }
+  /* 패드 move 모드 — eligible 슬롯은 별도 하이라이팅 없음 (시각 피로 방지),
+     non-eligible 슬롯만 두드러지게 딤드 처리해서 비활성화 표시.
+     source 슬롯은 노란 점선 윤곽으로 식별. */
   body.fi-move-mode .fi-cell.move-source,
   body.fi-move-mode .fi-weapon-slot.move-source,
   body.fi-move-mode .weapon-attach.move-source {
@@ -1401,7 +1393,8 @@
   body.fi-move-mode .fi-weapon-slot:not(.move-eligible):not(.move-source),
   body.fi-move-mode .weapon-attach:not(.move-eligible):not(.move-source) {
     pointer-events: none;
-    opacity: 0.55;
+    opacity: 0.28;
+    filter: grayscale(0.7) brightness(0.7);
   }
   /* 핑 플래시 — R스틱 클릭 시 1회 반짝. */
   .fi-ping-flash {
@@ -2169,6 +2162,12 @@
   .fi-bottom-guide .bg-mouse.lmb { background-image: url('figma-assets/mouse-glyphs/mouse-lb.svg'); }
   .fi-bottom-guide .bg-mouse.rmb { background-image: url('figma-assets/mouse-glyphs/mouse-rb.svg'); }
   .fi-bottom-guide .bg-mouse.scroll { background-image: url('figma-assets/mouse-glyphs/mouse-scroll.svg'); }
+  /* combo chip 의 "+" 연결자 (Alt + LMB 같은 조합용) */
+  .fi-bottom-guide .bg-plus {
+    color: rgba(225,232,240,0.65);
+    font-size: 14px; font-weight: 700;
+    margin: 0 -2px;
+  }
 
   #fi-ctx-menu {
     position: fixed;
@@ -3176,24 +3175,7 @@
         </div>
       </div>
 
-      <!-- ===== 하단 footer (1982..2160) — 기존 키 가이드 + Figma T-pill 포맷 ===== -->
-      <div class="fig-node fi-footer-row" style="left:0;top:1982px;width:3840px;height:178px">
-        <!-- KB row — 마우스 클릭 액션은 마우스 SVG 실루엣 / 키는 박스 letter / 조합은 + 연결자.
-             CTRL+클릭 = 다중선택(이전엔 별도 hint 였음). -->
-        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="드래그"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/><path d="M11 14 L11 19 M9 17 L11 19 L13 17" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></span><span class="fi-tpill-label">이동(드래그)</span></div>
-        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="더블클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/><text x="11" y="22" text-anchor="middle" font-size="7" font-weight="800" fill="currentColor" stroke="none">×2</text></svg></span><span class="fi-tpill-label">가져가기/장착</span></div>
-        <div class="fi-tpill-item kb-only"><span class="kk-mouse" title="우클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M19 11 L19 9 C19 4 16 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/></svg></span><span class="fi-tpill-label">기능 메뉴</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">CTRL</span><span class="kk-plus">+</span><span class="kk-mouse" title="좌클릭"><svg viewBox="0 0 22 30"><path d="M11 1 C6 1 3 4 3 9 L3 21 C3 26 6 29 11 29 C16 29 19 26 19 21 L19 9 C19 4 16 1 11 1 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 11 L19 11" stroke="currentColor" stroke-width="1.4"/><path d="M3 11 L3 9 C3 4 6 1 11 1 L11 11 Z" fill="currentColor" opacity="0.85"/></svg></span><span class="fi-tpill-label">다중 선택</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">E</span><span class="fi-tpill-label">가져가기</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">E</span><span class="kk-hold"><i></i><i></i><i></i></span><span class="fi-tpill-label">모두 가져가기</span></div>
-        <div class="fi-tpill-item kb-only"><span class="fi-tpill-key">TAB</span><span class="fi-tpill-label">닫기</span></div>
-        <!-- PAD row — Xbox 컬러 원 버튼 + "홀드" 점 인디케이터. -->
-        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="X">X</span><span class="fi-tpill-label">가져가기</span></div>
-        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="X">X</span><span class="kk-hold"><i></i><i></i><i></i></span><span class="fi-tpill-label">모두 가져가기</span></div>
-        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="A">A</span><span class="fi-tpill-label">가방 이동</span></div>
-        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="Y">Y</span><span class="fi-tpill-label">기능 메뉴</span></div>
-        <div class="fi-tpill-item pad-only"><span class="kk-pad" data-btn="B">B</span><span class="fi-tpill-label">닫기</span></div>
-      </div>
+      <!-- 기존 fi-footer-row T-pill 가이드는 #fiBottomGuide (화면 fixed 검은 바) 로 통합됨. -->
 
       <!-- 중앙 빈 영역 드롭존 — column gap (좌 1014..우 1912 사이) 에 transparent overlay.
            드롭 시 source scope 에 따라 라우팅:
@@ -5513,20 +5495,18 @@ function fiSelectionList() {
 const fiMod = { shift: false, ctrl: false, padXHoldStart: 0, padXHoldFired: false, kbEHoldStart: 0 };
 const elFIBottomGuide = document.getElementById('fiBottomGuide');
 
-// 단일 chip 렌더. spec: { glyph, label, hold?, progress? }
-//   glyph 형식:
+// 단일 glyph 렌더 (combo chip 의 한 조각).
+//   id 형식:
 //     'pad:A' | 'pad:X' | 'pad:Y' | 'pad:B'  → 패드 ABXY (흰 원 + 검은 글자)
-//     'kb:E'  | 'kb:Esc' | 'kb:Tab' | 'kb:Shift' | 'kb:Ctrl' | 'kb:Enter'  → KB 키
+//     'kb:E'  | 'kb:Esc' | 'kb:Tab' | 'kb:Shift' | 'kb:Alt' | 'kb:Enter'  → KB 키
 //     'stick:l' | 'stick:r'                   → L3/R3 (Figma 스틱 SVG)
-//     'mouse:lmb' | 'mouse:rmb' | 'mouse:scroll'  → 마우스 클릭 (Figma SVG)
-function _bgChip(spec) {
-  let glyphHtml = '';
-  if (spec.glyph.startsWith('pad:') || spec.glyph.startsWith('kb:')) {
-    const letter = spec.glyph.split(':')[1];
-    const holdCls = spec.hold ? ' hold' : '';
-    const p = (spec.progress || 0).toFixed(3);
-    glyphHtml =
-      `<span class="bg-key${holdCls}" style="--p:${p}">` +
+//     'mouse:lmb' | 'mouse:rmb' | 'mouse:drag' → 마우스 (Figma SVG; drag = lmb 의 alias)
+function _bgGlyph(id, hold, progress) {
+  if (id.startsWith('pad:') || id.startsWith('kb:')) {
+    const letter = id.split(':')[1];
+    const holdCls = hold ? ' hold' : '';
+    const p = (progress || 0).toFixed(3);
+    return `<span class="bg-key${holdCls}" style="--p:${p}">` +
         `<svg class="key-ring" viewBox="0 0 44 44">` +
           `<circle class="ring-bg" cx="22" cy="22" r="19"/>` +
           `<circle class="ring-fg" cx="22" cy="22" r="19" transform="rotate(-90 22 22)"/>` +
@@ -5534,14 +5514,28 @@ function _bgChip(spec) {
         `<span class="hold-arrow"></span>` +
         `<span class="key-letter">${letter}</span>` +
       `</span>`;
-  } else if (spec.glyph.startsWith('stick:')) {
-    const side = spec.glyph.split(':')[1];   // 'l' | 'r'
-    glyphHtml = `<span class="bg-stick ${side}3"></span>`;
-  } else if (spec.glyph.startsWith('mouse:')) {
-    const btn = spec.glyph.split(':')[1];   // 'lmb' | 'rmb' | 'scroll'
-    glyphHtml = `<span class="bg-mouse ${btn}"></span>`;
   }
-  return `<span class="bg-chip">${glyphHtml}<span class="bg-label">${spec.label}</span></span>`;
+  if (id.startsWith('stick:')) {
+    return `<span class="bg-stick ${id.split(':')[1]}3"></span>`;
+  }
+  if (id.startsWith('mouse:')) {
+    const btn = id.split(':')[1];
+    const cls = (btn === 'drag') ? 'lmb' : btn;   // drag 은 lmb 글리프 재사용
+    return `<span class="bg-mouse ${cls}"></span>`;
+  }
+  return '';
+}
+
+// chip 렌더 — glyph 가 배열이면 "+" 연결자로 combo chip 렌더 (예: Alt + LMB).
+// spec: { glyph: string | string[], label, hold?, progress? }
+function _bgChip(spec) {
+  const ids = Array.isArray(spec.glyph) ? spec.glyph : [spec.glyph];
+  let html = '';
+  ids.forEach((g, i) => {
+    if (i > 0) html += `<span class="bg-plus">+</span>`;
+    html += _bgGlyph(g, spec.hold, spec.progress);
+  });
+  return `<span class="bg-chip">${html}<span class="bg-label">${spec.label}</span></span>`;
 }
 
 // 인벤 하단 통합 가이드 — 현재 모드/포커스 기반 인터랙션 chip 리스트.
@@ -5596,6 +5590,8 @@ function fiUpdateModHint() {
   } else {
     // 일반 nav 모드
     if (isPad) {
+      // L3 (툴팁 토글) 은 가장 왼쪽 — 사용자 요청.
+      chips.push({ glyph: 'stick:l', label: state.padTooltipAuto ? '툴팁 OFF' : '툴팁 ON' });
       if (fScope === 'inv' && item) {
         chips.push({ glyph: 'pad:A', label: '이동 모드' });
         chips.push({ glyph: 'pad:X', label: '안전포켓으로' });
@@ -5616,15 +5612,13 @@ function fiUpdateModHint() {
         chips.push({ glyph: 'pad:Y',   label: '메뉴' });
         chips.push({ glyph: 'stick:r', label: '핑' });
       }
-      chips.push({ glyph: 'stick:l', label: state.padTooltipAuto ? '툴팁 OFF' : '툴팁 ON' });
     } else {
-      // KB+M 모드 — 자명한 항목(LMB 단일선택, RMB 메뉴, E hold 모두 가져가기) + Shift/Ctrl 수정자.
+      // KB+M 모드 — LMB 선택, RMB 메뉴, Alt+드래그 절반 나누기, E hold 모두 가져가기.
       chips.push({ glyph: 'mouse:lmb', label: '선택' });
       chips.push({ glyph: 'mouse:rmb', label: '메뉴' });
+      chips.push({ glyph: ['kb:Alt', 'mouse:lmb'], label: '절반 나누기 (드래그)' });
       chips.push({ glyph: 'kb:E', label: '모두 가져가기', hold: true, progress: kbEHoldP });
-      if (fiSelected.size > 0) {
-        chips.push({ glyph: 'kb:Ctrl', label: `${fiSelected.size}개 선택됨` });
-      } else if (fiMod.shift) {
+      if (fiMod.shift) {
         chips.push({ glyph: 'kb:Shift', label: '가방 이동' });
       }
     }
@@ -6091,11 +6085,13 @@ function fiSetDetail(item, anchorEl, mode) {
     const tw = elFIDetail.offsetWidth  || 320;
     const th = elFIDetail.offsetHeight || 360;
     const margin = 8;
+    // 하단 통합 가이드(약 64px) 위로 마진 확보 — 인벤 열린 상태일 때만 적용.
+    const bottomReserved = state.fullInvOpen ? 80 : 8;
     let x = rect.right + margin;
     let y = rect.top;
     if (x + tw > window.innerWidth - 8) x = rect.left - tw - margin;
     if (x < 8) x = 8;
-    if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+    if (y + th > window.innerHeight - bottomReserved) y = window.innerHeight - th - bottomReserved;
     if (y < 8) y = 8;
     elFIDetail.style.left = x + 'px';
     elFIDetail.style.top  = y + 'px';
