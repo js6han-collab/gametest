@@ -1379,6 +1379,39 @@
   body.fi-picker-mode .weapon-attach:not(.picker-eligible)::before {
     display: none !important;
   }
+  /* 패드 move 모드 — eligible 슬롯 녹색 점멸, source 슬롯 진한 노란 윤곽,
+     non-eligible 슬롯은 pointer-events 차단 + 살짝 딤. */
+  body.fi-move-mode .fi-cell.move-eligible,
+  body.fi-move-mode .fi-weapon-slot.move-eligible,
+  body.fi-move-mode .weapon-attach.move-eligible {
+    animation: fi-move-pulse 1.0s ease-in-out infinite;
+  }
+  @keyframes fi-move-pulse {
+    0%, 100% { box-shadow: inset 0 0 0 9999px rgba(110, 220, 140, 0.08); }
+    50%      { box-shadow: inset 0 0 0 9999px rgba(110, 220, 140, 0.32); }
+  }
+  body.fi-move-mode .fi-cell.move-source,
+  body.fi-move-mode .fi-weapon-slot.move-source,
+  body.fi-move-mode .weapon-attach.move-source {
+    outline: 2px dashed rgba(255, 220, 100, 0.95);
+    outline-offset: -2px;
+    box-shadow: 0 0 14px rgba(255, 200, 80, 0.55);
+  }
+  body.fi-move-mode .fi-cell:not(.move-eligible):not(.move-source),
+  body.fi-move-mode .fi-weapon-slot:not(.move-eligible):not(.move-source),
+  body.fi-move-mode .weapon-attach:not(.move-eligible):not(.move-source) {
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  /* 핑 플래시 — R스틱 클릭 시 1회 반짝. */
+  .fi-ping-flash {
+    animation: fi-ping-flash 0.8s ease-out;
+  }
+  @keyframes fi-ping-flash {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.0); }
+    20%  { box-shadow: 0 0 22px 6px rgba(255, 80, 80, 0.85); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 80, 80, 0.0); }
+  }
   /* ===== Focused/Hover/Selected slot — screen-like 효과로 등급색이 더 쨍해지게.
      기존 inset box-shadow (단순 흰 알파) 는 희부연해 보였음 → mix-blend-mode: overlay 의
      흰색 오버레이로 변경. overlay 는 어두운 픽셀은 더 어둡게/밝은 픽셀은 더 밝게 만들지만
@@ -2076,6 +2109,56 @@
   }
   .fi-mod-hint svg.x-ring .bg {
     fill: none; stroke: rgba(255,255,255,0.18); stroke-width: 2.4;
+  }
+
+  /* 인벤 하단 동적 액션바 — 현재 포커스/모드에서 가능한 패드 인터랙션 목록.
+     fi-mod-hint(88px) 와 안 겹치도록 더 아래(20px)에 배치, 한 줄 고정. */
+  .fi-pad-actionbar {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    display: none;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0 12px;
+    max-width: 94%;
+    padding: 6px 14px;
+    background: rgba(15,20,28,0.78);
+    border: 1px solid rgba(180,200,220,0.20);
+    color: rgba(220,230,240,0.92);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    z-index: 59;
+    pointer-events: none;
+  }
+  .fi-pad-actionbar.active { display: flex; }
+  .fi-pad-actionbar .pa-pair {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .fi-pad-actionbar .pa-btn {
+    display: inline-block;
+    background: #ffffff; color: #000000;
+    padding: 0 7px; height: 17px; line-height: 17px;
+    font-size: 10px; font-weight: 900; letter-spacing: 0.04em;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.28);
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .fi-pad-actionbar .pa-btn.hold {
+    background: transparent; color: #ffffff;
+    border: 1.5px solid #ffffff;
+    padding: 0 6px; height: 16px; line-height: 14px;
+  }
+  .fi-pad-actionbar .pa-lbl {
+    color: rgba(220,230,240,0.92);
+  }
+  .fi-pad-actionbar .pa-sep {
+    display: inline-block; width: 1px; height: 14px;
+    background: rgba(255,255,255,0.18);
   }
 
   #fi-ctx-menu {
@@ -3142,6 +3225,8 @@
     <!-- Detail tooltip / mod hint — 캔버스 밖, 화면 전역 fixed -->
     <div class="fi-detail" id="fiDetail"></div>
     <div class="fi-mod-hint" id="fiModHint"></div>
+    <!-- 패드 모드 한정: 현재 포커스/모드에서 가능한 인터랙션 목록 -->
+    <div class="fi-pad-actionbar" id="fiPadActionBar"></div>
   </div>
 </div>
 
@@ -4277,6 +4362,7 @@ const state = {
   padSprint: false,             // RB held — sprint while moving
   padConnected: false,          // any gamepad detected
   invMoveWhileOpen: true,       // 인벤 열린 상태에서 WASD/좌측 스틱으로 캐릭터 이동 허용
+  padTooltipAuto: true,         // 패드 포커스 시 자동으로 아이템 툴팁 표시 (L-stick 클릭으로 토글)
   showHidden: true,
   showUpgrade: true,
   autoRepick: true,
@@ -4322,6 +4408,8 @@ function setInputMode(mode) {
   // Always exactly one mode class on <body>. CSS keys off these.
   document.body.classList.remove('kb-mode', 'pad-mode');
   document.body.classList.add(mode + '-mode');
+  // 인벤 액션바는 패드 모드 한정 — 모드 전환 즉시 표시/숨김 동기화.
+  if (typeof fiUpdatePadActionBar === 'function') fiUpdatePadActionBar();
 }
 // Body initial mode is set in HTML (<body class="kb-mode">) to prevent flicker
 // before this script runs. setInputMode() swaps it as input source changes.
@@ -5417,10 +5505,82 @@ function fiSelectionList() {
 const fiMod = { shift: false, ctrl: false, padXHoldStart: 0, padXHoldFired: false, kbEHoldStart: 0 };
 const elFIModHint = document.getElementById('fiModHint');
 
-function fiUpdateModHint() {
+const elFIPadActionBar = document.getElementById('fiPadActionBar');
+
+// 현재 상태(포커스 슬롯 + 모드) 기반으로 패드 인터랙션 목록을 하단에 표시.
+// fiUpdateModHint 후미에서 매번 호출됨.
+function fiUpdatePadActionBar() {
+  if (!elFIPadActionBar) return;
+  if (!state.fullInvOpen || _lastInputMode !== 'pad') {
+    elFIPadActionBar.classList.remove('active');
+    return;
+  }
+  const fEl = document.querySelector('#fullinv .fi-pad-focus');
+  const fScope = fEl && fEl.dataset.scope;
+  const item = fEl ? fiResolveItem(fScope, fEl.dataset.id) : null;
+  const pairs = [];   // { btn, label, hold? }
+
+  if (_fiMoveMode) {
+    pairs.push({ btn: 'A',    label: '확정 / 교체' });
+    pairs.push({ btn: 'B',    label: '취소' });
+    pairs.push({ btn: 'R3',   label: '핑' });
+  } else if (_fiPickerMode) {
+    pairs.push({ btn: 'A',    label: '장착' });
+    pairs.push({ btn: 'B',    label: '취소' });
+  } else if (_fiTooltipMode === 'action') {
+    pairs.push({ btn: 'A',    label: '실행' });
+    pairs.push({ btn: 'B',    label: '정보 모드' });
+  } else {
+    // 일반 nav 모드 — 영역전환/닫기/자동장착(ground/cn 의 A) 은 제외.
+    if (fScope === 'inv' && item) {
+      pairs.push({ btn: 'A', label: '이동 모드' });
+      pairs.push({ btn: 'X', label: '안전포켓으로' });
+      pairs.push({ btn: 'X', label: '버리기', hold: true });
+    } else if (fScope === 'safe' && item) {
+      pairs.push({ btn: 'A', label: '이동 모드' });
+      pairs.push({ btn: 'X', label: '배낭으로' });
+      pairs.push({ btn: 'X', label: '버리기', hold: true });
+    } else if ((fScope === 'equip' || fScope === 'attach') && item) {
+      pairs.push({ btn: 'A', label: '이동 모드' });
+      pairs.push({ btn: 'X', label: '배낭으로' });
+      pairs.push({ btn: 'X', label: '버리기', hold: true });
+    } else if ((fScope === 'ground' || fScope === 'cn') && item) {
+      pairs.push({ btn: 'X', label: '픽업' });
+      pairs.push({ btn: 'X', label: '모두 가져가기', hold: true });
+    }
+    if (item) {
+      pairs.push({ btn: 'Y',  label: '메뉴' });
+      pairs.push({ btn: 'R3', label: '핑' });
+    }
+    pairs.push({ btn: 'L3', label: state.padTooltipAuto ? '툴팁 OFF' : '툴팁 ON' });
+  }
+
+  let html = '';
+  pairs.forEach((p, i) => {
+    if (i > 0) html += `<span class="pa-sep"></span>`;
+    const btnCls = p.hold ? 'pa-btn hold' : 'pa-btn';
+    const label = p.hold ? `${p.label} <span style="opacity:0.65;font-weight:500">(꾹)</span>` : p.label;
+    html += `<span class="pa-pair"><span class="${btnCls}">${p.btn}</span><span class="pa-lbl">${label}</span></span>`;
+  });
+  elFIPadActionBar.innerHTML = html;
+  elFIPadActionBar.classList.add('active');
+}
+
+function _fiUpdateModHintInner() {
   if (!state.fullInvOpen) {
     elFIModHint.classList.remove('active');
     elFIModHint.classList.remove('danger');
+    return;
+  }
+  // Move 모드 — 슬롯 선택 안내. 다른 hint 보다 우선.
+  if (_fiMoveMode) {
+    elFIModHint.classList.add('active');
+    elFIModHint.classList.remove('danger');
+    elFIModHint.innerHTML =
+      `<span>이동할 슬롯 선택</span>` +
+      `<span class="key">A</span><span>확정</span>` +
+      `<span class="key">B</span><span>취소</span>` +
+      `<span class="key">R3</span><span>핑</span>`;
     return;
   }
   // KB E hold (인벤 열린 상태 PC) — 항상 "모두 가져가기" (ground 한정 X)
@@ -5481,6 +5641,12 @@ function fiUpdateModHint() {
     return;
   }
   elFIModHint.classList.remove('active', 'danger');
+}
+
+// 외부 호출은 fiUpdateModHint() — 모드 hint + 액션바 둘 다 갱신.
+function fiUpdateModHint() {
+  try { _fiUpdateModHintInner(); }
+  finally { fiUpdatePadActionBar(); }
 }
 
 // =====================================================
@@ -6092,6 +6258,167 @@ function fiPickerConfirm() {
   const { sourceScope, sourceId } = _fiPickerMode;
   performTransfer(sourceScope, sourceId, dst.dataset.scope, dst.dataset.id);
   fiExitPickerMode(false);   // 이동 완료 — 직전 포커스 복원 안 함 (이미 옮겨졌으므로)
+}
+
+// ===== Pad Move Mode =====
+// A 키로 진입. source 슬롯의 아이템을 이동/교환 — 호환되는 모든 의미있는 슬롯을 highlight,
+// 사용자가 D-pad/스틱 으로 커서 옮긴 뒤 A로 확정. B로 취소, R스틱 클릭으로 핑.
+let _fiMoveMode = null;   // null | { sourceScope, sourceId }
+
+function fiEnterMoveMode(sourceScope, sourceId) {
+  const item = fiResolveItem(sourceScope, sourceId);
+  if (!item) return;
+  _fiMoveMode = { sourceScope, sourceId };
+  document.body.classList.add('fi-move-mode');
+  fiHideDetail(true);
+  _fiMarkMoveEligible();
+  // source 슬롯 윤곽 표시
+  const srcEl = document.querySelector(
+    `#fullinv [data-scope="${sourceScope}"][data-id="${CSS.escape(String(sourceId))}"]`);
+  if (srcEl) srcEl.classList.add('move-source');
+  // 가장 가까운 eligible 셀로 자동 포커스 — source 기준 거리 정렬.
+  const eligible = Array.from(document.querySelectorAll('#fullinv .move-eligible'));
+  if (eligible.length === 0) {
+    showToast(item, "이동 가능한 슬롯 없음");
+    fiExitMoveMode(true);
+    return;
+  }
+  const sr = srcEl ? srcEl.getBoundingClientRect() : { left: 0, top: 0 };
+  const sx = sr.left, sy = sr.top;
+  eligible.sort((a, b) => {
+    const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
+    const da = (ar.left - sx) ** 2 + (ar.top - sy) ** 2;
+    const db = (br.left - sx) ** 2 + (br.top - sy) ** 2;
+    return da - db;
+  });
+  setPadFocus(eligible[0]);
+  fiUpdateModHint();
+}
+
+function fiExitMoveMode(silent) {
+  if (!_fiMoveMode) return;
+  document.querySelectorAll('#fullinv .move-eligible').forEach(e => e.classList.remove('move-eligible'));
+  document.querySelectorAll('#fullinv .move-source').forEach(e => e.classList.remove('move-source'));
+  document.body.classList.remove('fi-move-mode');
+  const src = _fiMoveMode;
+  _fiMoveMode = null;
+  if (silent) {
+    // 취소 — source 슬롯으로 포커스 복귀.
+    const el = document.querySelector(
+      `#fullinv [data-scope="${src.sourceScope}"][data-id="${CSS.escape(String(src.sourceId))}"]`);
+    if (el) setPadFocus(el);
+  }
+  fiUpdateModHint();
+}
+
+function _fiMarkMoveEligible() {
+  if (!_fiMoveMode) return;
+  const { sourceScope, sourceId } = _fiMoveMode;
+  const item = fiResolveItem(sourceScope, sourceId);
+  if (!item) return;
+  const sameSrc = (el) => el.dataset.scope === sourceScope &&
+                          String(el.dataset.id) === String(sourceId);
+  const mark = (el) => { if (el && !sameSrc(el)) el.classList.add('move-eligible'); };
+
+  // 배낭. inv→inv 는 dense array 라 filled 슬롯끼리만 의미있는 swap.
+  // 다른 출발(equip/attach/safe/ground/cn)은 빈 슬롯도 OK (push 로 처리).
+  if (sourceScope === 'inv') {
+    document.querySelectorAll('#fullinv [data-scope="inv"]').forEach(el => {
+      const idx = +el.dataset.id;
+      if (idx >= 0 && idx < inv.backpack.length) mark(el);   // filled 만
+    });
+  } else {
+    document.querySelectorAll('#fullinv [data-scope="inv"]').forEach(mark);
+  }
+  // 안전 포켓 — 양쪽 슬롯
+  document.querySelectorAll('#fullinv [data-scope="safe"]').forEach(mark);
+  // 주변 / 컨테이너 — swap 또는 이동.
+  document.querySelectorAll('#fullinv [data-scope="ground"]').forEach(mark);
+  document.querySelectorAll('#fullinv [data-scope="cn"]').forEach(mark);
+  // 장비 슬롯 — 카테고리 호환 시에만.
+  document.querySelectorAll('#fullinv [data-scope="equip"]').forEach(el => {
+    const tgtId = el.dataset.id;
+    if (item.def && item.def.attachType && (tgtId === 'primary' || tgtId === 'secondary')) {
+      const w = inv.equip[tgtId];
+      if (w && attachmentFitsWeapon(item, w)) mark(el);
+    } else if (item.def && canEquipInto(item, tgtId)) {
+      mark(el);
+    }
+  });
+  // 부착물 sub-slot — attachType 매칭 + 무기 호환.
+  if (item.def && item.def.attachType) {
+    document.querySelectorAll('#fullinv [data-scope="attach"]').forEach(el => {
+      const [wSlot, aType] = String(el.dataset.id).split(':');
+      if (aType !== item.def.attachType) return;
+      const w = inv.equip[wSlot];
+      if (w && attachmentFitsWeapon(item, w)) mark(el);
+    });
+  }
+}
+
+function fiMoveConfirm() {
+  if (!_fiMoveMode) return;
+  const dst = document.querySelector('#fullinv .fi-pad-focus');
+  if (!dst || !dst.classList.contains('move-eligible')) {
+    // eligible 이 아닌 곳에서 A — 그냥 무시 (move mode 유지).
+    return;
+  }
+  const { sourceScope, sourceId } = _fiMoveMode;
+  performTransfer(sourceScope, sourceId, dst.dataset.scope, dst.dataset.id);
+  fiExitMoveMode(false);   // 이동 완료 — 복원 안 함 (이미 이동됨)
+}
+
+// R스틱 클릭 — 포커스된 아이템 핑. 인벤 열린 상태에서 항상.
+function fiPingFocused() {
+  const el = document.querySelector('#fullinv .fi-pad-focus');
+  if (!el) return;
+  const scope = el.dataset.scope;
+  if (scope === 'floor' || scope === 'aggr') return;
+  const item = fiResolveItem(scope, el.dataset.id);
+  if (!item) return;
+  showToast(item, "핑 표시됨");
+  el.classList.remove('fi-ping-flash');
+  void el.offsetWidth;   // reflow 강제 — 같은 슬롯 연타 시에도 애니메이션 재시작
+  el.classList.add('fi-ping-flash');
+  setTimeout(() => el.classList.remove('fi-ping-flash'), 850);
+}
+
+// X tap (배낭) — 빈 안전 포켓으로 이동. 둘 다 차있으면 no-op.
+function fiMoveInvToSafe(invId) {
+  const item = fiResolveItem('inv', invId);
+  if (!item) return false;
+  const tgtIdx = (inv.safe[0] == null) ? 0 : (inv.safe[1] == null ? 1 : -1);
+  if (tgtIdx < 0) return false;   // 둘 다 점유 — 사용자 요청: 이벤트 없음
+  performTransfer('inv', invId, 'safe', String(tgtIdx));
+  return true;
+}
+
+// X tap (안전 포켓) — 배낭으로 이동. 공간 없으면 토스트.
+function fiMoveSafeToInv(safeId) {
+  const item = fiResolveItem('safe', safeId);
+  if (!item) return false;
+  if (bpRemainingSlots() < 1) {
+    showToast(item, "공간 부족");
+    return false;
+  }
+  performTransfer('safe', safeId, 'inv', '0');   // inv tgtId 는 의미 없음 (push)
+  return true;
+}
+
+// X tap (장비/부착물) — 배낭으로 회수. 공간 없으면 토스트.
+function fiUnequipToInv(scope, id) {
+  const item = fiResolveItem(scope, id);
+  if (!item) return false;
+  // 무기는 부착물 detach 후 본체 + 부착물들이 배낭에 흩어짐. 공간 부족 가능성 미리 체크는
+  // 부정확하므로 quickMove 가 내부에서 처리하게 두되, 실패 시 토스트.
+  if (bpRemainingSlots() < 1) {
+    showToast(item, "공간 부족");
+    return false;
+  }
+  const ok = quickMove(scope, id);
+  if (ok) fiAfterChange();
+  else showToast(item, "공간 부족");
+  return ok;
 }
 
 function fiExecuteAction(actionId) {
@@ -6742,9 +7069,38 @@ function detachAllFromWeapon(weapon) {
   return detached;
 }
 
+// 같은 def 의 stackable 아이템을 target 슬롯에 합산. src.qty 가 0 이 되면 fully merged.
+// 반환: { moved, srcEmpty } | null (병합 안 됨).
+function tryStackMerge(src, dst) {
+  if (!src || !dst) return null;
+  if (src === dst) return null;
+  if (src.def !== dst.def) return null;
+  const maxStack = src.def.stack || 1;
+  if (maxStack <= 1) return null;
+  const room = maxStack - dst.qty;
+  if (room <= 0) return null;
+  const moved = Math.min(room, src.qty);
+  dst.qty += moved;
+  src.qty -= moved;
+  return { moved, srcEmpty: src.qty === 0 };
+}
+
 function performTransfer(srcScope, srcId, tgtScope, tgtId) {
   const item = fiResolveItem(srcScope, srcId);
   if (!item) return;
+  // ===== 같은 def stackable 합산 우선 처리 — 슬롯-레벨 목적지(col-*/floor 제외). =====
+  const slotLevelTgt = (tgtScope === 'inv' || tgtScope === 'safe' || tgtScope === 'equip' ||
+                        tgtScope === 'attach' || tgtScope === 'cn' || tgtScope === 'ground');
+  const sameSlot = (srcScope === tgtScope && String(srcId) === String(tgtId));
+  if (slotLevelTgt && !sameSlot) {
+    const dst = fiResolveItem(tgtScope, tgtId);
+    const merge = tryStackMerge(item, dst);
+    if (merge) {
+      if (merge.srcEmpty) removeFromSource(srcScope, srcId);
+      fiAfterChange();
+      return;
+    }
+  }
   // equip 슬롯의 무기가 비-장비 위치(배낭/바닥/컨테이너)로 이동할 때 부착물을 분리.
   // 분리된 부착물은 destination 별 처리부에서 함께 분배.
   const detached = (srcScope === 'equip' && item.def && item.def.cat === 'weapon' &&
@@ -6916,7 +7272,16 @@ function performTransfer(srcScope, srcId, tgtScope, tgtId) {
       const ok = tryAddToInventory(item, { skipAutoAttach: true });
       if (ok) inv.safe[+srcId] = null;
     } else if (srcScope === 'inv') {
-      // No-op for v0.1 (no positional reordering inside backpack).
+      // 배낭 내 슬롯 간 swap. dense array 라 target 이 backpack.length 이상(빈 슬롯) 이면
+      // 위치 이동 의미가 없어 무시. filled↔filled swap 만 의미 있음.
+      const sIdx = +srcId, tIdx = +tgtId;
+      if (sIdx !== tIdx &&
+          sIdx >= 0 && sIdx < inv.backpack.length &&
+          tIdx >= 0 && tIdx < inv.backpack.length) {
+        const tmp = inv.backpack[tIdx];
+        inv.backpack[tIdx] = inv.backpack[sIdx];
+        inv.backpack[sIdx] = tmp;
+      }
     }
     fiAfterChange();
     return;
@@ -6960,6 +7325,46 @@ function performTransfer(srcScope, srcId, tgtScope, tgtId) {
       activeContainer.contents.push(item);
       // 분리된 부착물도 같은 컨테이너에 함께 넣음
       for (const at of detached) activeContainer.contents.push(at);
+    }
+    fiAfterChange();
+    return;
+  }
+
+  // ----- Destination: ground 아이템 (swap-via-floor) — move 모드에서 A on ground 케이스.
+  // src 를 플레이어 주변 바닥에 떨어트리고, ground 아이템을 src 슬롯 위치로.
+  if (tgtScope === 'ground') {
+    if (srcScope === 'ground') return;   // ground→ground 의미 없음
+    const groundEntry = groundItems.find(e => String(e.item.uid) === String(tgtId));
+    if (!groundEntry) return;
+    const groundItem = groundEntry.item;
+    removeFromSource(srcScope, srcId);
+    removeGroundEntry(groundEntry);
+    spawnGroundItemAt(item,
+      player.pos.x + (Math.random() - 0.5) * 1.0,
+      player.pos.z + (Math.random() - 0.5) * 1.0);
+    _scatterDetachedToGround();
+    // ground 아이템을 src 위치로.
+    if (srcScope === 'inv') {
+      inv.backpack.push(groundItem);
+    } else if (srcScope === 'safe') {
+      inv.safe[+srcId] = groundItem;
+    } else if (srcScope === 'equip') {
+      if (canEquipInto(groundItem, srcId)) {
+        inv.equip[srcId] = groundItem;
+      } else if (!tryAddToInventory(groundItem)) {
+        spawnGroundItemAt(groundItem,
+          player.pos.x + (Math.random() - 0.5) * 1.5,
+          player.pos.z + (Math.random() - 0.5) * 1.5);
+      }
+    } else if (srcScope === 'attach') {
+      // attach 출발은 1:1 호환 무기 슬롯 필요 — 그냥 배낭으로.
+      if (!tryAddToInventory(groundItem)) {
+        spawnGroundItemAt(groundItem,
+          player.pos.x + (Math.random() - 0.5) * 1.5,
+          player.pos.z + (Math.random() - 0.5) * 1.5);
+      }
+    } else if (srcScope === 'cn' && activeContainer) {
+      activeContainer.contents.push(groundItem);
     }
     fiAfterChange();
     return;
@@ -7010,10 +7415,13 @@ function setPadFocus(el) {
   if (col) fiSetActiveCol(col);
   // Tooltip auto-shows ONLY in pad mode. In KB+M mode, mouse hover drives the
   // tooltip — auto-showing here would pop a stuck tooltip on inventory open.
-  if (_lastInputMode === 'pad') {
+  // state.padTooltipAuto OFF 면 자동 표시 안 함 (L-stick 클릭으로 토글).
+  if (_lastInputMode === 'pad' && state.padTooltipAuto) {
     const item = fiResolveItem(fiPadFocus.scope, fiPadFocus.id);
     if (item) fiSetDetail(item, el);
     else fiHideDetail();
+  } else if (_lastInputMode === 'pad' && !state.padTooltipAuto) {
+    fiHideDetail();
   }
   // Scroll focused element into view if it's inside a scrollable panel.
   el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -7104,6 +7512,8 @@ function fiIsPadFocusable(el) {
   if (!scope) return false;
   // Picker 모드 — picker-eligible 셀만 포커스 허용 (빈/점유 상관없이 호환되면 후보).
   if (_fiPickerMode) return el.classList.contains('picker-eligible');
+  // Move 모드 — move-eligible 셀만 포커스 허용 (source 슬롯은 제외).
+  if (_fiMoveMode) return el.classList.contains('move-eligible');
   // 컬럼-레벨 / 사이드 drop zone 은 큰 직사각형이라 셀 네비게이션 후보로 잡히면 안 됨.
   if (scope.startsWith('col-')) return false;
   if (scope === 'floor') return false;
@@ -7369,6 +7779,7 @@ function fiPadDropOnHoldComplete() {
 }
 
 let _fiDragData = null;   // {scope, id} of source while dragging
+let _fiDragHalf = false;  // Alt+drag — stackable 아이템 절반만 분리해서 드래그
 function onFIDragStart(ev) {
   const el = ev.currentTarget;
   if (!el.dataset.scope) return;
@@ -7401,6 +7812,10 @@ function onFIDragStart(ev) {
     if (fiSelected.size > 1) fiClearSelection();
   }
   _fiDragData = payload;
+  // Alt 키 + 단일 소스 + stackable + qty > 1 → 절반만 드래그. 멀티셀렉션은 분할 미지원.
+  _fiDragHalf = !!(ev.altKey && payload.length === 1 && item && item.def &&
+                   (item.def.stack || 1) > 1 && item.qty > 1);
+  const halfQty = _fiDragHalf ? Math.floor(item.qty / 2) : null;
   ev.dataTransfer.effectAllowed = 'move';
   try { ev.dataTransfer.setData('text/plain', payload.map(p => `${p.scope}:${p.id}`).join(',')); } catch (e) {}
   // 커스텀 drag image — 원본 셀(200×200/860×480) 그대로 미리보기가 되면 너무 커서
@@ -7411,11 +7826,19 @@ function onFIDragStart(ev) {
     ghost.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:60px;height:60px;' +
       'background:rgba(20,28,42,0.92);border:1.5px solid rgba(120,200,230,0.65);border-radius:8px;' +
       'display:flex;align-items:center;justify-content:center;padding:6px;box-sizing:border-box;' +
-      'box-shadow:0 4px 12px rgba(0,0,0,0.6);z-index:9999;pointer-events:none;';
+      'box-shadow:0 4px 12px rgba(0,0,0,0.6);z-index:9999;pointer-events:none;position:relative;';
     if (item && item.def) {
       ghost.innerHTML = iconHtml(item.def.iconType, 48);
       const img = ghost.querySelector('img,svg');
       if (img) { img.style.width = '48px'; img.style.height = '48px'; img.style.objectFit = 'contain'; }
+      if (_fiDragHalf) {
+        // 분할 수량 배지 — 우상단에 "½ N" 표시.
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:absolute;right:-4px;top:-4px;background:#f4c150;color:#000;' +
+          'font:900 11px/16px sans-serif;padding:0 5px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.5);';
+        badge.textContent = `½ ${halfQty}`;
+        ghost.appendChild(badge);
+      }
     }
     document.body.appendChild(ghost);
     ev.dataTransfer.setDragImage(ghost, 30, 30);
@@ -7482,9 +7905,51 @@ function onFIDragEnd(ev) {
   if (fz) fz.classList.remove('drag-active', 'drag-armed');
   document.getElementById('fullinv').removeAttribute('data-drag-src');
   _fiDragData = null;
+  _fiDragHalf = false;
   // 드래그 중 브라우저가 keyup 을 발화하지 않아 keys 에 키가 stuck 되는 버그 (한 방향 무한 이동) 방지.
   // 드래그 종료 시 입력 state 일괄 클리어 — 사용자가 다시 WASD 누르면 이동 재개.
   _clearAllInputState();
+}
+
+// 외부 생성 아이템(Alt 분할 결과)을 target 슬롯에 배치. performTransfer 와 달리 source
+// 슬롯을 읽지 않고 주어진 item 그 자체를 배치한다. stackable 합산 우선, 빈 슬롯이면 직접 배치.
+function placeExternalItem(item, tgtScope, tgtId) {
+  if (!item || item.qty <= 0) return;
+  // 슬롯-레벨 stackable 합산 우선.
+  const slotLevel = (tgtScope === 'inv' || tgtScope === 'safe' || tgtScope === 'cn' || tgtScope === 'ground');
+  if (slotLevel) {
+    const dst = fiResolveItem(tgtScope, tgtId);
+    if (dst && dst.def === item.def && (dst.def.stack || 1) > 1) {
+      const room = (dst.def.stack || 1) - dst.qty;
+      const moved = Math.min(room, item.qty);
+      dst.qty += moved;
+      item.qty -= moved;
+      if (item.qty <= 0) return;
+      // 남은 잔량 — 같은 scope 에 새 entry 로 추가.
+    }
+  }
+  if (tgtScope === 'inv') {
+    if (bpRemainingSlots() >= 1) inv.backpack.push(item);
+    else spawnGroundItemAt(item,
+      player.pos.x + (Math.random()-0.5)*1.2, player.pos.z + (Math.random()-0.5)*1.2);
+  } else if (tgtScope === 'safe') {
+    const ti = +tgtId;
+    if (inv.safe[ti] == null) inv.safe[ti] = item;
+    else if (inv.safe[1 - ti] == null) inv.safe[1 - ti] = item;
+    else if (bpRemainingSlots() >= 1) inv.backpack.push(item);
+    else spawnGroundItemAt(item, player.pos.x, player.pos.z);
+  } else if (tgtScope === 'cn' && activeContainer) {
+    activeContainer.contents.push(item);
+  } else if (tgtScope === 'ground' || tgtScope === 'floor' ||
+             tgtScope === 'col-left') {
+    spawnGroundItemAt(item,
+      player.pos.x + (Math.random()-0.5)*1.2, player.pos.z + (Math.random()-0.5)*1.2);
+  } else if (tgtScope === 'col-center') {
+    if (!tryAddToInventory(item)) spawnGroundItemAt(item, player.pos.x, player.pos.z);
+  } else {
+    // equip/attach/col-right 등 stackable 분할과 무관한 대상 → 배낭 폴백.
+    if (!tryAddToInventory(item)) spawnGroundItemAt(item, player.pos.x, player.pos.z);
+  }
 }
 
 function onFIDragOver(ev) {
@@ -7535,6 +8000,24 @@ function onFIDrop(ev) {
   // empty selection set (otherwise stale selection class lingers on now-empty
   // source cells).
   fiClearSelection();
+  // Alt+drag 절반 분할 — 단일 소스, stackable, qty>1 한정 (dragstart 에서 _fiDragHalf 세팅).
+  // 소스 슬롯에 절반 남기고, 새 entry 로 절반을 target 에 배치 (stackable 합산 우선).
+  if (_fiDragHalf && _fiDragData.length === 1) {
+    const src = _fiDragData[0];
+    if (fiIsValidDrop(src.scope, src.id, tgtScope, tgtId)) {
+      const srcItem = fiResolveItem(src.scope, src.id);
+      if (srcItem && srcItem.qty > 1 && (srcItem.def.stack || 1) > 1) {
+        const half = Math.floor(srcItem.qty / 2);
+        srcItem.qty -= half;
+        const newItem = makeItem(srcItem.defId, { qty: half, rarity: srcItem.rarity });
+        placeExternalItem(newItem, tgtScope, tgtId);
+        fiAfterChange();
+      }
+    }
+    fiUpdateSelectionVisual();
+    el.classList.remove('drag-over', 'drag-invalid');
+    return;
+  }
   // Process in descending source-index order so array splices don't shift
   // remaining indices for items in the same array.
   const sources = _fiDragData.slice().sort((a, b) => {
@@ -8640,6 +9123,34 @@ function pollGamepad(dt) {
   if (state.fullInvOpen) {
     // ----- Tooltip action mode: hijack pad for action button selection -----
     // Y로 진입. D-pad ↕ / 스틱 ↕ → 버튼 cycle, A → 실행, Y/B → info 복귀.
+    // ----- Move mode hijack: A로 진입한 명시적 이동 모드. eligible 셀로 커서 이동 후 A 확정. -----
+    // R스틱 클릭(11) = 핑. B = 취소. X tap/hold 는 무시 (이동 모드 중에는 의미 없음).
+    if (_fiMoveMode) {
+      if (justPressed(12)) fiPadFocusMove('up');
+      if (justPressed(13)) fiPadFocusMove('down');
+      if (justPressed(14)) fiPadFocusMove('left');
+      if (justPressed(15)) fiPadFocusMove('right');
+      const _mvx = applyDeadzone(pad.axes[state.invMoveWhileOpen ? 2 : 0] || 0);
+      const _mvy = applyDeadzone(pad.axes[state.invMoveWhileOpen ? 3 : 1] || 0);
+      const mvActive = Math.abs(_mvx) > 0.5 || Math.abs(_mvy) > 0.5;
+      if (mvActive) {
+        _stickNavTimer -= dt;
+        if (_stickNavTimer <= 0) {
+          if (Math.abs(_mvx) > Math.abs(_mvy)) fiPadFocusMove(_mvx > 0 ? 'right' : 'left');
+          else                                  fiPadFocusMove(_mvy > 0 ? 'down'  : 'up');
+          _stickNavTimer = STICK_NAV_INTERVAL;
+        }
+      } else {
+        _stickNavTimer = 0;
+      }
+      if (justPressed(0))  fiMoveConfirm();           // A — 확정
+      if (justPressed(1))  fiExitMoveMode(true);      // B — 취소 + source 포커스 복원
+      if (justPressed(11)) fiPingFocused();           // R-stick 클릭 — 핑
+      fiUpdateModHint();
+      _padPrevButtons = pad.buttons.map(b => b && b.pressed);
+      return;
+    }
+
     // ----- Picker mode hijack: 부착물 장착/회수 시 호환 슬롯 선택 -----
     // D-pad/스틱 → fiPadFocusMove (eligible 셀만 필터). A → 확정. B → 취소 (직전 포커스 복원).
     if (_fiPickerMode) {
@@ -8738,13 +9249,39 @@ function pollGamepad(dt) {
     }
 
     // Action buttons
-    if (justPressed(0)) fiPadAction();           // A — quick move
+    if (justPressed(0)) {
+      // A 동작:
+      //   - inv/safe/equip/attach 포커스 + 아이템 보유 → move mode 진입 (사용자가 직접 슬롯 선택).
+      //   - ground/cn (주변/컨테이너) → 기존 fiPadAction (picker 또는 quickMove 자동 라우팅).
+      const fEl = document.querySelector('#fullinv .fi-pad-focus');
+      const fScope = fEl && fEl.dataset.scope;
+      if ((fScope === 'inv' || fScope === 'safe' || fScope === 'equip' || fScope === 'attach') &&
+          fiResolveItem(fScope, fEl.dataset.id)) {
+        fiEnterMoveMode(fScope, fEl.dataset.id);
+      } else {
+        fiPadAction();
+      }
+    }
     if (justPressed(3)) fiPadCtxMenu();          // Y — context menu
     if (justPressed(1)) {                        // B — close (or close ctx)
       if (elFICtxMenu.classList.contains('active')) fiHideCtxMenu();
       else closeFullInventory();
     }
     if (justPressed(9)) closeFullInventory();    // Start — close
+    if (justPressed(11)) fiPingFocused();        // R-stick 클릭 — 포커스 아이템 핑
+    if (justPressed(10)) {                       // L-stick 클릭 — 툴팁 자동 표시 토글
+      state.padTooltipAuto = !state.padTooltipAuto;
+      const fEl = document.querySelector('#fullinv .fi-pad-focus');
+      if (fEl) {
+        if (state.padTooltipAuto) {
+          const it = fiResolveItem(fEl.dataset.scope, fEl.dataset.id);
+          if (it) fiSetDetail(it, fEl);
+        } else {
+          fiHideDetail();
+        }
+      }
+      showToastText(state.padTooltipAuto ? "툴팁 자동 표시 ON" : "툴팁 자동 표시 OFF");
+    }
 
     // X (button 2) HOLD = drop on floor (백팩/장비) 또는 pickup all (ground 포커스).
     // X TAP = ground 포커스 시 pickup (사용자 요청: "주변 아이템 X 누르면 습득").
@@ -8779,6 +9316,15 @@ function pollGamepad(dt) {
           const moved = quickMove(fscope, focused.dataset.id);
           // cn 의 quickMove 는 내부적으로 렌더 트리거를 안 함 — 명시적으로 재렌더.
           if (moved && state.fullInvOpen) fiAfterChange();
+        } else if (fscope === 'inv') {
+          // 배낭 아이템 X tap → 빈 안전 포켓으로. 둘 다 차있으면 이벤트 없음 (사용자 요청).
+          if (fiMoveInvToSafe(focused.dataset.id)) fiAfterChange();
+        } else if (fscope === 'safe') {
+          // 안전 포켓 X tap → 배낭으로 회수 (대칭).
+          if (fiMoveSafeToInv(focused.dataset.id)) fiAfterChange();
+        } else if (fscope === 'equip' || fscope === 'attach') {
+          // 무기/장비/부착물 X tap → 배낭으로 회수. 공간 없으면 토스트.
+          fiUnequipToInv(fscope, focused.dataset.id);
         }
       }
       fiMod.padXHoldStart = 0;
