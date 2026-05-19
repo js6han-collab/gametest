@@ -484,55 +484,83 @@
      Compact backpack grid that pops up just below the crosshair after a pickup,
      stays for ~2 seconds, then fades out. Lets the player check slot status
      at a glance without opening the full inventory. */
+  /* Figma 4515:1209 패턴 — 크로스헤어 우측 상단에 떠 있는 4열 슬롯 미리보기.
+     상단: 좌측에 점유/전체 카운트, 우측에 무게 % pill (검은 캡슐). */
   #quickInvPreview {
     position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, 95px);
-    background: rgba(15,14,10,0.88);
-    border: 1px solid rgba(214,168,74,0.4);
-    padding: 8px 10px 9px;
+    /* 화면 정중앙(크로스헤어)의 우측 상단 — 시야 가리지 않게 살짝 위로. */
+    left: calc(50% + 110px);
+    top: 16%;
+    width: 220px;
+    background: rgba(0,0,0,0.72);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 14px 16px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
   }
   #quickInvPreview.visible { opacity: 1; }
   #quickInvPreview .qip-header {
-    font-size: 9px;
-    color: var(--ink-2);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    text-align: center;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(230,222,198,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
-  #quickInvPreview .qip-header .count {
-    color: var(--amber);
-    font-weight: 700;
+  #quickInvPreview .qip-count {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
     font-variant-numeric: tabular-nums;
-    margin-left: 2px;
+    line-height: 1;
   }
+  #quickInvPreview .qip-weight {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  #quickInvPreview .qip-weight-icon {
+    width: 14px; height: 14px;
+    background: url('figma-assets/hud-icons/weight-fill.svg') no-repeat center / contain;
+    opacity: 0.92;
+  }
+  #quickInvPreview .qip-weight.warn   { border-color: rgba(214,168,74,0.6); }
+  #quickInvPreview .qip-weight.over   { border-color: var(--red);
+                                        color: var(--red); }
+  /* 4 column grid — 인벤토리 본체와 동일 배열. cell 크기/간격은 화면 비례. */
   #quickInvPreview .qip-grid {
     display: grid;
-    grid-template-columns: repeat(8, 14px);
-    gap: 2px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
   }
   #quickInvPreview .qip-cell {
-    width: 14px; height: 14px;
-    background: rgba(0,0,0,0.45);
-    border: 1px solid rgba(230,222,198,0.20);
+    aspect-ratio: 1 / 1;
+    background: rgba(217,217,217,0.10);
+    border: 2px solid rgba(255,255,255,0.50);
+    border-radius: 5px;
+    box-sizing: border-box;
   }
   #quickInvPreview .qip-cell.filled {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(230,222,198,0.55);
+    background: #d9d9d9;
+    border-color: rgba(255,255,255,0.78);
   }
   #quickInvPreview .qip-cell.filled[data-rarity="green"]  { border-color: var(--r-green);  }
   #quickInvPreview .qip-cell.filled[data-rarity="blue"]   { border-color: var(--r-blue);   }
   #quickInvPreview .qip-cell.filled[data-rarity="purple"] { border-color: var(--r-purple); }
   #quickInvPreview .qip-cell.filled[data-rarity="gold"]   { border-color: var(--r-gold);   }
-  /* Stack-full: solid block painted in the rarity color so a "saturated"
-     state is unmistakable at-a-glance — this slot can take no more of the
-     same item. */
+  /* Stack-full: 슬롯이 최대 묶음 — rarity 색으로 솔리드 채움. */
   #quickInvPreview .qip-cell.stack-full {
     background: var(--r-gray);
   }
@@ -540,15 +568,14 @@
   #quickInvPreview .qip-cell.stack-full[data-rarity="blue"]   { background: var(--r-blue);   }
   #quickInvPreview .qip-cell.stack-full[data-rarity="purple"] { background: var(--r-purple); }
   #quickInvPreview .qip-cell.stack-full[data-rarity="gold"]   { background: var(--r-gold);   }
-  /* 2-pulse blink for newly-changed cells (new entry OR stack merge).
-     Background reverts to the cell's normal painted state after animation. */
+  /* 2-pulse blink for newly-changed cells (new entry OR stack merge). */
   #quickInvPreview .qip-cell.new {
     animation: qipNewFlash 1.0s ease-out;
   }
   @keyframes qipNewFlash {
-    0%, 50%   { background: rgba(214,168,74,0.9); border-color: var(--amber); box-shadow: 0 0 7px rgba(214,168,74,0.7); }
-    25%, 75%  { background: rgba(255,255,255,0.07); border-color: rgba(230,222,198,0.55); box-shadow: none; }
-    100%      { background: rgba(255,255,255,0.07); box-shadow: none; }
+    0%, 50%   { background: rgba(214,168,74,0.9); border-color: var(--amber); box-shadow: 0 0 9px rgba(214,168,74,0.7); }
+    25%, 75%  { background: #d9d9d9; border-color: rgba(255,255,255,0.78); box-shadow: none; }
+    100%      { background: #d9d9d9; box-shadow: none; }
   }
 
   /* ===== Pickup toast ===== */
@@ -5095,21 +5122,29 @@ function getVisibleQLList() {
 // ---- Quick inventory preview (post-pickup) ----
 const elQIP = document.getElementById('quickInvPreview');
 let _qipTimer = null;
+// 무게 최대치 — fiBpWeightMax 표시 기준과 동일.
+const QIP_MAX_WEIGHT = 50.0;
 function showInvPreview(newUids) {
   if (!elQIP) return;
   newUids = newUids || new Set();
   const cap = backpackCapacity();
   const used = inv.backpack.length;
-  let html = `<div class="qip-header">백팩 <span class="count">${used} / ${cap}</span></div>`;
+  const w = totalWeight();
+  const wPct = Math.min(999, Math.round((w / QIP_MAX_WEIGHT) * 100));
+  const wCls = wPct >= 100 ? ' over' : (wPct >= 80 ? ' warn' : '');
+  let html = `<div class="qip-header">`
+    + `<span class="qip-count">${used}/${cap}</span>`
+    + `<span class="qip-weight${wCls}">`
+      + `<span class="qip-weight-icon"></span>`
+      + `<span>${wPct}%</span>`
+    + `</span>`
+    + `</div>`;
   html += '<div class="qip-grid">';
   for (let i = 0; i < cap; i++) {
     const it = inv.backpack[i];
     if (it) {
       const newCls = newUids.has(it.uid) ? ' new' : '';
-      // stack-full: stackable item whose qty has reached its def.stack max.
-      // Single-stack items (qty=1, stack=1) are always "full" by their nature
-      // but we don't paint them solid — only multi-stack items at max get the
-      // saturated visual.
+      // stack-full: stackable item 의 qty 가 max 도달.
       const isStackFull = it.def.stack > 1 && it.qty >= it.def.stack;
       const fullCls = isStackFull ? ' stack-full' : '';
       html += `<div class="qip-cell filled${newCls}${fullCls}" data-rarity="${it.rarity}"></div>`;
