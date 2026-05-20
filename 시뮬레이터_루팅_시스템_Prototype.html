@@ -139,19 +139,22 @@
   --fig-cell-stroke-w:         2.13px;
   --fig-cell-radius:           20px;
 
-  /* Focus 그라데이션 테두리 — focused-border.svg 색상/방향 그대로 옮긴 CSS gradient.
-     ::before 의 padding+mask-composite 트릭으로 4px 링만 가시화. SVG 와 달리 직사각형
-     슬롯에서도 자연스럽게 늘어나고 슬롯 R 과 정확히 동심원이 됨. */
+  /* Focus 그라데이션 테두리 — Figma 4618:169663 컴포넌트의 회전 애니메이션을 conic-gradient
+     로 구현. 동일한 cream/cyan/magenta 컬러 휠을 슬롯 둘레로 회전 → 6프레임 keyframe 과 동일.
+     ::before 의 padding + mask-composite 트릭은 그대로 — 4px 링만 가시화 + 슬롯 radius 와 동심원. */
   --fi-focus-gradient:
-    linear-gradient(135deg,
-      #FAEEDE 0%,
-      #21DFFF 13.71%,
-      #FF30E3 23.75%,
-      #000 31.15%,
-      #000 68.61%,
-      #FAEEDE 78.85%,
-      #21DFFF 88.46%,
-      #FF30E3 100%);
+    conic-gradient(from var(--fi-focus-angle, 0deg),
+      #000 0%,
+      #FAEEDE 4%,
+      #21DFFF 10%,
+      #FF30E3 16%,
+      #000 24%,
+      #000 50%,
+      #FAEEDE 54%,
+      #21DFFF 60%,
+      #FF30E3 66%,
+      #000 74%,
+      #000 100%);
   --fi-focus-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -200,6 +203,24 @@
   --fig-font-cell-count:       36.17px;
   --fig-font-tpill-key:        40px;
   --fig-font-tpill-label:      40px;
+}
+
+/* conic-gradient 의 from <angle> 을 변수로 받아 부드럽게 애니메이션 (Figma 4618:169663). */
+@property --fi-focus-angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+@keyframes fi-focus-rotate {
+  from { --fi-focus-angle: 0deg; }
+  to   { --fi-focus-angle: 360deg; }
+}
+/* 포커스 슬롯 ::before 링 회전 — 슬롯별 ::before 룰은 background/mask 만 지정,
+   회전 애니메이션은 이 공통 셀렉터로 통합 (specificity 동등 우선순위 보장). */
+body.pad-mode .fi-cell.fi-pad-focus::before,
+body.pad-mode .fi-weapon-slot.fi-pad-focus::before,
+body.pad-mode .weapon-attach.fi-pad-focus::before {
+  animation: fi-focus-rotate 2.4s linear infinite;
 }
 
 </style>
