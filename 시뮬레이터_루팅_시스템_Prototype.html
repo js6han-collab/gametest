@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
@@ -139,22 +139,22 @@
   --fig-cell-stroke-w:         2.13px;
   --fig-cell-radius:           20px;
 
-  /* Focus 그라데이션 테두리 — Figma 4618:169663 컴포넌트의 회전 애니메이션을 conic-gradient
-     로 구현. 동일한 cream/cyan/magenta 컬러 휠을 슬롯 둘레로 회전 → 6프레임 keyframe 과 동일.
-     ::before 의 padding + mask-composite 트릭은 그대로 — 4px 링만 가시화 + 슬롯 radius 와 동심원. */
-  --fi-focus-gradient:
-    conic-gradient(from var(--fi-focus-angle, 0deg),
-      #000 0%,
-      #FAEEDE 4%,
-      #21DFFF 10%,
-      #FF30E3 16%,
-      #000 24%,
-      #000 50%,
-      #FAEEDE 54%,
-      #21DFFF 60%,
-      #FF30E3 66%,
-      #000 74%,
-      #000 100%);
+  /* Focus 그라데이션 테두리 — Figma 4618:169663 컴포넌트의 회전 애니메이션.
+     conic-gradient 색상 stops 만 변수에 담아두고, 실제 gradient 는 각 ::before 룰에서
+     직접 var(--fi-focus-angle) 과 함께 inline 으로 사용 → CSS var indirection 한 단계
+     줄여서 angle 애니메이션이 ::before 에 안 전파되는 문제 회피. */
+  --fi-focus-stops:
+    #000 0deg,
+    #FAEEDE 14deg,
+    #21DFFF 36deg,
+    #FF30E3 58deg,
+    #000 86deg,
+    #000 180deg,
+    #FAEEDE 194deg,
+    #21DFFF 216deg,
+    #FF30E3 238deg,
+    #000 266deg,
+    #000 360deg;
   --fi-focus-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -1387,7 +1387,7 @@ body.pad-mode .weapon-attach.fi-pad-focus::before {
     position: absolute;
     inset: -8px;   /* 슬롯 외곽보다 8px 더 바깥 → 슬롯 edge 와 겹치지 않음 */
     border-radius: calc(var(--fig-radius-inner) + 8px);
-    background: var(--fi-focus-gradient);
+    background: conic-gradient(from var(--fi-focus-angle, 0deg), var(--fi-focus-stops));
     padding: 5px;  /* ring 두께 5px (좀 더 잘 보이게) */
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
@@ -1677,7 +1677,7 @@ body.pad-mode .weapon-attach.fi-pad-focus::before {
     position: absolute;
     inset: -8px;
     border-radius: calc(var(--fig-cell-radius) + 8px);
-    background: var(--fi-focus-gradient);
+    background: conic-gradient(from var(--fi-focus-angle, 0deg), var(--fi-focus-stops));
     padding: 5px;
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
@@ -1835,7 +1835,7 @@ body.pad-mode .weapon-attach.fi-pad-focus::before {
     position: absolute;
     inset: -8px;
     border-radius: calc(var(--fig-cell-radius) + 8px);
-    background: var(--fi-focus-gradient);
+    background: conic-gradient(from var(--fi-focus-angle, 0deg), var(--fi-focus-stops));
     padding: 5px;
     -webkit-mask: var(--fi-focus-mask);
             mask: var(--fi-focus-mask);
